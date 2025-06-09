@@ -1,191 +1,243 @@
 <!DOCTYPE html>
-<html lang="en" class=""><head><script>window.livecodes = window.livecodes || {};</script><title>DeepAI Code Snippet (fork) (fork)</title><meta name="title" content="DeepAI Code Snippet (fork) (fork)"><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"><style id="__livecodes_styles__"></style><script src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.js" async=""></script><script type="importmap">{
-  "imports": {}
-}</script></head><body>
-
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Permutation List &amp; Export</title>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Permutation Viewer & Export - Pagination</title>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <style>
   body {
-    font-family: Arial, sans-serif;
-    background: #f4f4f4;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
     margin: 0;
     padding: 10px;
   }
   #container {
-    max-width: 600px;
+    max-width: 1300px;
     margin: auto;
-    font-size: 0.9em;
+    background: #fff;
+    padding: 1em;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
   }
   h1 {
     text-align: center;
     font-weight: bold;
-    font-size: 1.2em;
+    font-size: 1.4em;
     margin-bottom: 0.5em;
+    color: #333;
   }
   p {
     text-align: center;
-    margin-bottom: 0.5em;
+    margin-bottom: 1em;
+    color: #555;
   }
-  .inputs {
+  /* Layout: top section with grids, then buttons, then results */
+  .top-section {
     display: flex;
-    justify-content: center;
-    gap: 10px;
+    justify-content: space-around;
     flex-wrap: wrap;
+    margin-bottom: 15px;
   }
-  .chart-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0.5em 0;
+  .grid-container {
+    background: #e8f5e9;
+    padding: 1em;
+    border-radius: 10px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+    margin: 10px;
   }
   .chart-title {
-    font-weight: bold;
-    margin-bottom: 0.3em;
-    font-size: 1em;
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 0.5em;
+    font-size: 1.1em;
+    color: #2e7d32;
   }
   .grid {
     display: grid;
-    grid-template-columns: repeat(4, 40px);
-    gap: 6px;
+    grid-template-columns: repeat(4, 50px);
+    gap: 8px;
+    justify-content: center;
   }
   input[type=number] {
-    width: 40px;
-    height: 40px;
-    font-size: 1em;
+    width: 50px;
+    height: 50px;
+    font-size: 1.2em;
     text-align: center;
-    border: 2px solid #4CAF50;
-    border-radius: 4px;
-    outline: none;
-  }
-  button {
-    margin: 0.5em 0.5em 1em 0.5em;
-    padding: 8px 16px;
-    font-size: 0.9em;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-  }
-  #generateBtn {
-    background-color: #4CAF50;
-    color: white;
-  }
-  #generateBtn:hover {
-    background-color: #45a049;
-  }
-  #exportBtn {
-    background-color: #2196F3;
-    color: white;
-  }
-  #exportBtn:hover {
-    background-color: #0b7dda;
-  }
-  /* Results styling */
-  #resultsContainer {
-    background: #fff;
-    padding: 0.5em;
+    border: 2px solid #81c784;
     border-radius: 8px;
-    margin-top: 1em;
-    max-height: 80vh;
-    overflow-y: auto;
-    transition: max-height 0.3s ease;
+    outline: none;
+    transition: border-color 0.2s;
   }
-  h2 {
-    font-size: 1em;
-    margin-top: 0.8em;
-    margin-bottom: 0.3em;
+  input[type=number]:focus {
+    border-color: #388e3c;
   }
-  .list-container {
+  /* Buttons layout */
+  .buttons {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  button {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  #showExact { background-color: #388e3c; color: #fff; }
+  #showExact:hover { background-color: #2e7d32; }
+  #showSimilar { background-color: #00796b; color: #fff; }
+  #showSimilar:hover { background-color: #00695c; }
+  #generateBtn { background-color: #1976d2; color: #fff; }
+  #generateBtn:hover { background-color: #1565c0; }
+  #exportBtn { background-color: #f57c00; color: #fff; }
+  #exportBtn:hover { background-color: #ef6c00; }
+  /* Results styling */
+  #resultsContainer {
+    margin-top: 20px;
+    padding: 1em;
+    background: #fafafa;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    display: inline-block;
+    position: relative;
+  }
+  h2 {
+    margin-top: 1em;
+    font-size: 1.2em;
+    color: #444;
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 0.3em;
+  }
+  #permutationList {
+    max-height: 300px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
     gap: 4px;
     padding: 4px;
   }
   .permutation {
-    display: inline-block;
-    margin: 2px;
-    padding: 2px 6px;
-    background: #e0f7fa;
+    background-color: #d0e8f2;
+    padding: 4px;
     border-radius: 4px;
     font-family: monospace;
+    font-size: 0.75em;
+    text-align: center;
+  }
+  /* Pagination controls */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px 0;
+  }
+  .pagination button {
+    padding: 6px 12px;
     font-size: 0.9em;
   }
 </style>
-
-
+</head>
+<body>
 <div id="container">
-<h1>Permutation List &amp; Export</h1>
-<p>Enter numbers (0-9) in both grids. The system will generate all 4-digit permutations and display them.</p>
+<h1>Permutation Viewer & Export</h1>
+<p>Enter digits in both grids. Use buttons below to toggle views. Export the current page as JPEG/PNG. All numbers will be visible in export.</p>
 
-<div class="inputs">
-  <!-- Chart 1 -->
-  <div class="chart-container">
+<!-- Top section with 4x4 grids -->
+<div class="top-section">
+  <!-- Grid 1 -->
+  <div class="grid-container">
     <div class="chart-title">Chart 1</div>
     <div class="grid" id="grid1">
-      <input type="number" min="0" max="9" id="g1-0">
-      <input type="number" min="0" max="9" id="g1-1">
-      <input type="number" min="0" max="9" id="g1-2">
-      <input type="number" min="0" max="9" id="g1-3">
-      <input type="number" min="0" max="9" id="g1-4">
-      <input type="number" min="0" max="9" id="g1-5">
-      <input type="number" min="0" max="9" id="g1-6">
-      <input type="number" min="0" max="9" id="g1-7">
-      <input type="number" min="0" max="9" id="g1-8">
-      <input type="number" min="0" max="9" id="g1-9">
-      <input type="number" min="0" max="9" id="g1-10">
-      <input type="number" min="0" max="9" id="g1-11">
-      <input type="number" min="0" max="9" id="g1-12">
-      <input type="number" min="0" max="9" id="g1-13">
-      <input type="number" min="0" max="9" id="g1-14">
-      <input type="number" min="0" max="9" id="g1-15">
+      <input type="number" min="0" max="9" id="g1-0" />
+      <input type="number" min="0" max="9" id="g1-1" />
+      <input type="number" min="0" max="9" id="g1-2" />
+      <input type="number" min="0" max="9" id="g1-3" />
+      <input type="number" min="0" max="9" id="g1-4" />
+      <input type="number" min="0" max="9" id="g1-5" />
+      <input type="number" min="0" max="9" id="g1-6" />
+      <input type="number" min="0" max="9" id="g1-7" />
+      <input type="number" min="0" max="9" id="g1-8" />
+      <input type="number" min="0" max="9" id="g1-9" />
+      <input type="number" min="0" max="9" id="g1-10" />
+      <input type="number" min="0" max="9" id="g1-11" />
+      <input type="number" min="0" max="9" id="g1-12" />
+      <input type="number" min="0" max="9" id="g1-13" />
+      <input type="number" min="0" max="9" id="g1-14" />
+      <input type="number" min="0" max="9" id="g1-15" />
     </div>
   </div>
-  <!-- Chart 2 -->
-  <div class="chart-container">
+  <!-- Grid 2 -->
+  <div class="grid-container">
     <div class="chart-title">Chart 2</div>
     <div class="grid" id="grid2">
-      <input type="number" min="0" max="9" id="g2-0">
-      <input type="number" min="0" max="9" id="g2-1">
-      <input type="number" min="0" max="9" id="g2-2">
-      <input type="number" min="0" max="9" id="g2-3">
-      <input type="number" min="0" max="9" id="g2-4">
-      <input type="number" min="0" max="9" id="g2-5">
-      <input type="number" min="0" max="9" id="g2-6">
-      <input type="number" min="0" max="9" id="g2-7">
-      <input type="number" min="0" max="9" id="g2-8">
-      <input type="number" min="0" max="9" id="g2-9">
-      <input type="number" min="0" max="9" id="g2-10">
-      <input type="number" min="0" max="9" id="g2-11">
-      <input type="number" min="0" max="9" id="g2-12">
-      <input type="number" min="0" max="9" id="g2-13">
-      <input type="number" min="0" max="9" id="g2-14">
-      <input type="number" min="0" max="9" id="g2-15">
+      <input type="number" min="0" max="9" id="g2-0" />
+      <input type="number" min="0" max="9" id="g2-1" />
+      <input type="number" min="0" max="9" id="g2-2" />
+      <input type="number" min="0" max="9" id="g2-3" />
+      <input type="number" min="0" max="9" id="g2-4" />
+      <input type="number" min="0" max="9" id="g2-5" />
+      <input type="number" min="0" max="9" id="g2-6" />
+      <input type="number" min="0" max="9" id="g2-7" />
+      <input type="number" min="0" max="9" id="g2-8" />
+      <input type="number" min="0" max="9" id="g2-9" />
+      <input type="number" min="0" max="9" id="g2-10" />
+      <input type="number" min="0" max="9" id="g2-11" />
+      <input type="number" min="0" max="9" id="g2-12" />
+      <input type="number" min="0" max="9" id="g2-13" />
+      <input type="number" min="0" max="9" id="g2-14" />
+      <input type="number" min="0" max="9" id="g2-15" />
     </div>
   </div>
 </div>
 
-<div style="text-align:center;">
+<!-- Buttons: Generate, Show, Export -->
+<div class="buttons">
   <button id="generateBtn">Generate</button>
-  <button id="exportBtn">Export as JPEG</button>
+</div>
+<div class="buttons">
+  <button id="showExact">Show Exact Permutations</button>
+  <button id="showSimilar">Show Shared Permutations</button>
+</div>
+<div class="buttons">
+  <button id="exportBtn">Export as JPEG/PNG</button>
 </div>
 
+<!-- Results area -->
 <div id="resultsContainer">
-<h2>Exact Matching Permutations</h2>
-<div class="list-container" id="exactMatches"></div>
-<h2>Similar Permutations</h2>
-<div class="list-container" id="similarMatches"></div>
+<h2 id="viewTitle">Exact Permutations (Page 1)</h2>
+<div id="permutationList"></div>
+<div class="pagination">
+  <button id="prevPage" disabled>Previous</button>
+  <button id="nextPage" disabled>Next</button>
+</div>
 </div>
 </div>
 
 <script>
-  const btnGenerate = document.getElementById('generateBtn');
-  const btnExport = document.getElementById('exportBtn');
-  const exactMatchesDiv = document.getElementById('exactMatches');
-  const similarMatchesDiv = document.getElementById('similarMatches');
+const btnShowExact = document.getElementById('showExact');
+const btnShowSimilar = document.getElementById('showSimilar');
+const btnGenerate = document.getElementById('generateBtn');
+const btnExport = document.getElementById('exportBtn');
+const listContainer = document.getElementById('permutationList');
+const viewTitle = document.getElementById('viewTitle');
+const prevBtn = document.getElementById('prevPage');
+const nextBtn = document.getElementById('nextPage');
+
+let currentView = 'exact'; // or 'similar'
+let exactPermutations = [];
+let sharedPermutations = [];
+
+const PER_PAGE = 100; // Number of permutations per page
+let currentPage = 1;
+let totalPages = 1;
 
 function getColumnSequences(prefix) {
   const sequences = [];
@@ -219,130 +271,172 @@ function generatePermutationsFromSequences(sequences) {
   backtrack(0, []);
   return results;
 }
+
 function getSortedDigits(p) {
   return p.split('').sort().join('');
 }
 
-btnGenerate.onclick = () => {
-  exactMatchesDiv.innerHTML = '';
-  similarMatchesDiv.innerHTML = '';
+function displayPermutations(pagePerms) {
+  listContainer.innerHTML = '';
+  pagePerms.forEach(p => {
+    const span = document.createElement('div');
+    span.className = 'permutation';
+    span.innerText = p;
+    listContainer.appendChild(span);
+  });
+}
 
+// Function to update pagination buttons state
+function updatePagination() {
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
+  document.getElementById('viewTitle').innerText = `Current View (Page ${currentPage} of ${totalPages})`;
+}
+
+// Function to set and display current page permutations
+function setPage(permutations) {
+  totalPages = Math.ceil(permutations.length / PER_PAGE);
+  if (totalPages === 0) totalPages = 1; // avoid division by zero
+  // Clamp currentPage
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+  const startIdx = (currentPage - 1) * PER_PAGE;
+  const endIdx = startIdx + PER_PAGE;
+  const pagePerms = permutations.slice(startIdx, endIdx);
+  displayPermutations(pagePerms);
+  updatePagination();
+}
+
+function generateData() {
   const seqs1 = getColumnSequences('g1');
   const seqs2 = getColumnSequences('g2');
-
   if (!seqs1 || !seqs2) return;
 
   const perms1 = generatePermutationsFromSequences(seqs1);
   const perms2 = generatePermutationsFromSequences(seqs2);
 
-  const set2 = new Set(perms2);
+  exactPermutations = perms1;
+  sharedPermutations = [];
 
-  // Find exact matches
-  const exactMatches = perms1.filter(p => set2.has(p));
-  displayPermutationList('exactMatches', exactMatches);
+  const map1 = new Map();
+  for (const p of perms1) {
+    const key = getSortedDigits(p);
+    if (!map1.has(key)) map1.set(key, []);
+    map1.get(key).push(p);
+  }
 
-  // Map permutations of perms2 by sorted digits
-  const perms2Map = new Map();
+  const map2 = new Map();
   for (const p of perms2) {
     const key = getSortedDigits(p);
-    if (!perms2Map.has(key)) perms2Map.set(key, []);
-    perms2Map.get(key).push(p);
+    if (!map2.has(key)) map2.set(key, []);
+    map2.get(key).push(p);
   }
 
-  // Find "similar" pairs
-  const pairGroups = {}; // key: sorted digits, value: set of pair strings
-  for (const p1 of perms1) {
-    const sKey = getSortedDigits(p1);
-    const group = perms2Map.get(sKey);
-    if (group) {
-      for (const p2 of group) {
-        if (p1 !== p2) {
-          // create a sorted key to avoid duplicates
-          const pairKey = [p1, p2].sort().join('|');
-          if (!pairGroups[sKey]) pairGroups[sKey] = new Set();
-          pairGroups[sKey].add(pairKey);
-        }
-      }
+  const sharedKeys = [...map1.keys()].filter(k => map2.has(k));
+  for (const key of sharedKeys) {
+    const list1 = map1.get(key);
+    const list2 = map2.get(key);
+    const merged = Array.from(new Set([...list1, ...list2]));
+    for (const p of merged) {
+      if (!sharedPermutations.includes(p))
+        sharedPermutations.push(p);
     }
   }
 
-  // Convert groups to size-based arrays
-  const sizeGroups = {}; // size: array of pairs
-  for (const sKey in pairGroups) {
-    const pairsSet = pairGroups[sKey];
-    const pairsArray = Array.from(pairsSet).map(k => {
-      const [a, b] = k.split('|');
-      return [a, b];
-    });
-    // sort pairs within group
-    pairsArray.sort((a, b) => {
-      if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
-      return a[1].localeCompare(b[1]);
-    });
-    const size = pairsArray.length;
-    if (!sizeGroups[size]) sizeGroups[size] = [];
-    sizeGroups[size] = sizeGroups[size].concat(pairsArray);
-  }
-
-  // Define order of sizes
-  const sizeOrder = [24, 12, 6, 4, 1];
-
-  // Display groups in order
-  sizeOrder.forEach(size => {
-    if (sizeGroups[size]) {
-      sizeGroups[size].forEach(pair => {
-        const div = document.createElement('div');
-        div.className = 'permutation';
-        div.innerText = pair[0] + '  ↔  ' + pair[1];
-        similarMatchesDiv.appendChild(div);
-      });
-    }
-  });
-  // If no groups found
-  if (similarMatchesDiv.children.length === 0) {
-    similarMatchesDiv.innerHTML = '<p>No pairs found.</p>';
-  }
-};
-
-function displayPermutationList(elementId, permList) {
-  const container = document.getElementById(elementId);
-  container.innerHTML = '';
-  if (permList.length === 0) {
-    container.innerHTML = '<p>No permutations found.</p>';
-    return;
-  }
-  // Remove duplicates
-  const uniquePerms = Array.from(new Set(permList));
-  uniquePerms.sort();
-  uniquePerms.forEach(p => {
-    const span = document.createElement('span');
-    span.className = 'permutation';
-    span.innerText = p;
-    container.appendChild(span);
-  });
+  // Reset to page 1
+  currentPage = 1;
+  // Display current view
+  updateDisplay();
 }
 
-document.getElementById('exportBtn').onclick = () => {
-  const containerDiv = document.getElementById('resultsContainer');
+function updateDisplay() {
+  if (currentView === 'exact') {
+    if (exactPermutations.length === 0) {
+      listContainer.innerHTML = '<em>No permutations to display.</em>';
+      document.getElementById('viewTitle').innerText = 'Exact Permutations (Page 1)';
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+    } else {
+      setPage(exactPermutations);
+    }
+  } else {
+    if (sharedPermutations.length === 0) {
+      listContainer.innerHTML = '<em>No permutations to display.</em>';
+      document.getElementById('viewTitle').innerText = 'Shared Permutations (Page 1)';
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+    } else {
+      setPage(sharedPermutations);
+    }
+  }
+}
 
-  // Save original maxHeight
-  const originalMaxHeight = containerDiv.style.maxHeight;
-
-  // Remove scrolling constraints temporarily
-  containerDiv.style.maxHeight = 'none';
-
-  // Use html2canvas to capture the entire container
-  html2canvas(document.getElementById('container'), { scale: 2 }).then(canvas => {
-    // Restore the original maxHeight
-    containerDiv.style.maxHeight = originalMaxHeight;
-
-    // Trigger download
-    const link = document.createElement('a');
-    link.download = 'permutation_list_full.jpeg';
-    link.href = canvas.toDataURL('image/jpeg', 0.9);
-    link.click();
-  });
+// Button handlers
+document.getElementById('showExact').onclick = () => {
+  currentView = 'exact';
+  currentPage = 1;
+  updateDisplay();
 };
-</script>
+document.getElementById('showSimilar').onclick = () => {
+  currentView = 'similar';
+  currentPage = 1;
+  updateDisplay();
+};
+document.getElementById('generateBtn').onclick = () => {
+  generateData();
+};
+prevBtn.onclick = () => {
+  if (currentPage > 1) {
+    currentPage--;
+    updateDisplay();
+  }
+};
+nextBtn.onclick = () => {
+  const totalPerms = (currentView === 'exact') ? exactPermutations.length : sharedPermutations.length;
+  if (currentPage < Math.ceil(totalPerms / PER_PAGE)) {
+    currentPage++;
+    updateDisplay();
+  }
+};
+document.getElementById('exportBtn').onclick = () => {
+  const container = document.getElementById('resultsContainer');
 
-<script></script></body></html>
+  // Save original styles
+  const originalStyles = {
+    maxHeight: container.style.maxHeight,
+    overflow: container.style.overflow,
+    height: container.style.height,
+    color: container.style.color,
+  };
+
+  // Expand container to include all content
+  container.style.color = '#000'; // ensure text is black for clear export
+  container.style.maxHeight = 'none';
+  container.style.overflow = 'visible';
+
+  // Set height to scrollHeight to include all content
+  const fullHeight = container.scrollHeight;
+  container.style.height = fullHeight + 'px';
+
+  // Delay to ensure styles are applied
+  setTimeout(() => {
+    html2canvas(container, { scale: 4 }).then(canvas => {
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/jpeg', 0.9);
+      link.download = (currentView === 'exact') ? 'exact_permutations.jpeg' : 'shared_permutations.jpeg';
+      link.click();
+
+      // Restore original styles
+      container.style.maxHeight = originalStyles.maxHeight;
+      container.style.overflow = originalStyles.overflow;
+      container.style.height = originalStyles.height;
+      container.style.color = originalStyles.color;
+    });
+  }, 100);
+};
+
+// Initialize display
+updateDisplay();
+</script>
+</body>
+</html>
