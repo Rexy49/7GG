@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Permutation Viewer & Export - Pagination</title>
+<title>Rex Compare Chart</title>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <style>
   body {
@@ -13,7 +13,7 @@
     padding: 10px;
   }
   #container {
-    max-width: 1300px;
+    max-width: 1500px; /* Increased max width for broader display */
     margin: auto;
     background: #fff;
     padding: 1em;
@@ -35,16 +35,18 @@
     margin-bottom: 1em;
     color: #555;
   }
-  /* Layout: top section with grids, then buttons, then results */
+  /* Top section with 4x4 grids, closer together */
   .top-section {
     display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    gap: 10px;
     margin-bottom: 15px;
   }
   .grid-container {
     background: #e8f5e9;
-    padding: 1em;
+    padding: 0.5em;
     border-radius: 10px;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
     margin: 10px;
@@ -52,20 +54,20 @@
   .chart-title {
     text-align: center;
     font-weight: 600;
-    margin-bottom: 0.5em;
-    font-size: 1.1em;
+    margin-bottom: 0.3em;
+    font-size: 1em;
     color: #2e7d32;
   }
   .grid {
     display: grid;
-    grid-template-columns: repeat(4, 50px);
-    gap: 8px;
+    grid-template-columns: repeat(4, 40px);
+    gap: 6px;
     justify-content: center;
   }
   input[type=number] {
-    width: 50px;
-    height: 50px;
-    font-size: 1.2em;
+    width: 40px;
+    height: 40px;
+    font-size: 1em; /* Default size, will increase dynamically later */
     text-align: center;
     border: 2px solid #81c784;
     border-radius: 8px;
@@ -75,19 +77,19 @@
   input[type=number]:focus {
     border-color: #388e3c;
   }
-  /* Buttons layout */
+  /* Buttons in one line, smaller size */
   .buttons {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: center;
-    gap: 10px;
-    margin-bottom: 15px;
+    gap: 8px;
+    margin-bottom: 10px;
   }
   button {
-    padding: 10px 20px;
-    font-size: 1em;
+    padding: 8px 12px;
+    font-size: 0.9em;
     border: none;
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s;
   }
@@ -99,7 +101,9 @@
   #generateBtn:hover { background-color: #1565c0; }
   #exportBtn { background-color: #f57c00; color: #fff; }
   #exportBtn:hover { background-color: #ef6c00; }
-  /* Results styling */
+  #exportAllBtn { background-color: #c2185b; color: #fff; }
+  #exportAllBtn:hover { background-color: #ad1457; }
+  /* Results styling - larger container, more width */
   #resultsContainer {
     margin-top: 20px;
     padding: 1em;
@@ -108,6 +112,8 @@
     border: 1px solid #ccc;
     display: inline-block;
     position: relative;
+    max-width: 100%;
+    overflow: visible;
   }
   h2 {
     margin-top: 1em;
@@ -116,327 +122,297 @@
     border-bottom: 2px solid #ccc;
     padding-bottom: 0.3em;
   }
+  /* Expanded width for permutation list container */
   #permutationList {
-    max-height: 300px;
+    width: 100%; /* Full width of parent container */
+    max-width: 1400px; /* Limit max width if needed */
+    height: auto;
     overflow-y: auto;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
     gap: 4px;
-    padding: 4px;
+    padding: 8px;
+    box-sizing: border-box;
   }
-  .permutation {
+  /* Smaller font size for permutation display */
+  #permutationList .permutation {
     background-color: #d0e8f2;
     padding: 4px;
-    border-radius: 4px;
+    border-radius: 3px;
     font-family: monospace;
-    font-size: 0.75em;
+    font-size: 0.8em; /* decreased size for smaller display */
     text-align: center;
   }
-  /* Pagination controls */
-  .pagination {
-    display: flex;
+  /* Pagination controls (hidden for full display) */
+  #paginationControls {
+    display: none;
     justify-content: center;
     gap: 10px;
     margin: 10px 0;
   }
-  .pagination button {
-    padding: 6px 12px;
-    font-size: 0.9em;
+  /* Wrapper for export content */
+  #exportArea {
+    margin-top: 10px;
   }
 </style>
 </head>
 <body>
 <div id="container">
-<h1>Permutation Viewer & Export</h1>
-<p>Enter digits in both grids. Use buttons below to toggle views. Export the current page as JPEG/PNG. All numbers will be visible in export.</p>
+<h1>Rex Compare Chart</h1>
+<p>Enter digits in both grids. Use buttons below to toggle views. Export the current view as JPEG/PNG. All numbers will be visible in export.</p>
 
-<!-- Top section with 4x4 grids -->
-<div class="top-section">
-  <!-- Grid 1 -->
-  <div class="grid-container">
-    <div class="chart-title">Chart 1</div>
-    <div class="grid" id="grid1">
-      <input type="number" min="0" max="9" id="g1-0" />
-      <input type="number" min="0" max="9" id="g1-1" />
-      <input type="number" min="0" max="9" id="g1-2" />
-      <input type="number" min="0" max="9" id="g1-3" />
-      <input type="number" min="0" max="9" id="g1-4" />
-      <input type="number" min="0" max="9" id="g1-5" />
-      <input type="number" min="0" max="9" id="g1-6" />
-      <input type="number" min="0" max="9" id="g1-7" />
-      <input type="number" min="0" max="9" id="g1-8" />
-      <input type="number" min="0" max="9" id="g1-9" />
-      <input type="number" min="0" max="9" id="g1-10" />
-      <input type="number" min="0" max="9" id="g1-11" />
-      <input type="number" min="0" max="9" id="g1-12" />
-      <input type="number" min="0" max="9" id="g1-13" />
-      <input type="number" min="0" max="9" id="g1-14" />
-      <input type="number" min="0" max="9" id="g1-15" />
+<!-- Wrapper for exportable content -->
+<div id="exportArea">
+  <!-- Charts -->
+  <div class="top-section">
+    <!-- Chart 1 -->
+    <div class="grid-container">
+      <div class="chart-title">Chart 1</div>
+      <div class="grid" id="grid1">
+        <input type="number" min="0" max="9" id="g1-0" />
+        <input type="number" min="0" max="9" id="g1-1" />
+        <input type="number" min="0" max="9" id="g1-2" />
+        <input type="number" min="0" max="9" id="g1-3" />
+        <input type="number" min="0" max="9" id="g1-4" />
+        <input type="number" min="0" max="9" id="g1-5" />
+        <input type="number" min="0" max="9" id="g1-6" />
+        <input type="number" min="0" max="9" id="g1-7" />
+        <input type="number" min="0" max="9" id="g1-8" />
+        <input type="number" min="0" max="9" id="g1-9" />
+        <input type="number" min="0" max="9" id="g1-10" />
+        <input type="number" min="0" max="9" id="g1-11" />
+        <input type="number" min="0" max="9" id="g1-12" />
+        <input type="number" min="0" max="9" id="g1-13" />
+        <input type="number" min="0" max="9" id="g1-14" />
+        <input type="number" min="0" max="9" id="g1-15" />
+      </div>
+    </div>
+    <!-- Chart 2 -->
+    <div class="grid-container">
+      <div class="chart-title">Chart 2</div>
+      <div class="grid" id="grid2">
+        <input type="number" min="0" max="9" id="g2-0" />
+        <input type="number" min="0" max="9" id="g2-1" />
+        <input type="number" min="0" max="9" id="g2-2" />
+        <input type="number" min="0" max="9" id="g2-3" />
+        <input type="number" min="0" max="9" id="g2-4" />
+        <input type="number" min="0" max="9" id="g2-5" />
+        <input type="number" min="0" max="9" id="g2-6" />
+        <input type="number" min="0" max="9" id="g2-7" />
+        <input type="number" min="0" max="9" id="g2-8" />
+        <input type="number" min="0" max="9" id="g2-9" />
+        <input type="number" min="0" max="9" id="g2-10" />
+        <input type="number" min="0" max="9" id="g2-11" />
+        <input type="number" min="0" max="9" id="g2-12" />
+        <input type="number" min="0" max="9" id="g2-13" />
+        <input type="number" min="0" max="9" id="g2-14" />
+        <input type="number" min="0" max="9" id="g2-15" />
+      </div>
     </div>
   </div>
-  <!-- Grid 2 -->
-  <div class="grid-container">
-    <div class="chart-title">Chart 2</div>
-    <div class="grid" id="grid2">
-      <input type="number" min="0" max="9" id="g2-0" />
-      <input type="number" min="0" max="9" id="g2-1" />
-      <input type="number" min="0" max="9" id="g2-2" />
-      <input type="number" min="0" max="9" id="g2-3" />
-      <input type="number" min="0" max="9" id="g2-4" />
-      <input type="number" min="0" max="9" id="g2-5" />
-      <input type="number" min="0" max="9" id="g2-6" />
-      <input type="number" min="0" max="9" id="g2-7" />
-      <input type="number" min="0" max="9" id="g2-8" />
-      <input type="number" min="0" max="9" id="g2-9" />
-      <input type="number" min="0" max="9" id="g2-10" />
-      <input type="number" min="0" max="9" id="g2-11" />
-      <input type="number" min="0" max="9" id="g2-12" />
-      <input type="number" min="0" max="9" id="g2-13" />
-      <input type="number" min="0" max="9" id="g2-14" />
-      <input type="number" min="0" max="9" id="g2-15" />
-    </div>
+
+  <!-- Buttons -->
+  <div class="buttons">
+    <button id="generateBtn">Generate</button>
+    <button id="showExact">Exact Permutations</button>
+    <button id="showSimilar">Shared Permutations</button>
+    <button id="exportBtn">Export as JPEG/PNG</button>
+    <button id="exportAllBtn">Export All Permutations</button>
   </div>
-</div>
 
-<!-- Buttons: Generate, Show, Export -->
-<div class="buttons">
-  <button id="generateBtn">Generate</button>
-</div>
-<div class="buttons">
-  <button id="showExact">Show Exact Permutations</button>
-  <button id="showSimilar">Show Shared Permutations</button>
-</div>
-<div class="buttons">
-  <button id="exportBtn">Export as JPEG/PNG</button>
-</div>
+  <!-- Permutations display -->
+  <div id="resultsContainer">
+    <h2 id="viewTitle">All Permutations</h2>
+    <div id="permutationList"></div>
+  </div>
+</div> <!-- end of #exportArea -->
 
-<!-- Results area -->
-<div id="resultsContainer">
-<h2 id="viewTitle">Exact Permutations (Page 1)</h2>
-<div id="permutationList"></div>
-<div class="pagination">
-  <button id="prevPage" disabled>Previous</button>
-  <button id="nextPage" disabled>Next</button>
-</div>
-</div>
-</div>
+</div> <!-- end of #container -->
 
 <script>
-const btnShowExact = document.getElementById('showExact');
-const btnShowSimilar = document.getElementById('showSimilar');
-const btnGenerate = document.getElementById('generateBtn');
-const btnExport = document.getElementById('exportBtn');
-const listContainer = document.getElementById('permutationList');
-const viewTitle = document.getElementById('viewTitle');
-const prevBtn = document.getElementById('prevPage');
-const nextBtn = document.getElementById('nextPage');
+document.addEventListener('DOMContentLoaded', () => {
+  const btnShowExact = document.getElementById('showExact');
+  const btnShowSimilar = document.getElementById('showSimilar');
+  const btnGenerate = document.getElementById('generateBtn');
+  const btnExport = document.getElementById('exportBtn');
+  const btnExportAll = document.getElementById('exportAllBtn');
+  const listContainer = document.getElementById('permutationList');
+  const viewTitle = document.getElementById('viewTitle');
 
-let currentView = 'exact'; // or 'similar'
-let exactPermutations = [];
-let sharedPermutations = [];
+  let currentView = 'exact'; // or 'similar'
+  let exactPermutations = [];
+  let sharedPermutations = [];
 
-const PER_PAGE = 100; // Number of permutations per page
-let currentPage = 1;
-let totalPages = 1;
-
-function getColumnSequences(prefix) {
-  const sequences = [];
-  for (let col=0; col<4; col++) {
-    const colSeq = [];
-    for (let row=0; row<4; row++) {
-      const id = prefix + '-' + (row*4 + col);
-      const val = parseInt(document.getElementById(id).value);
-      if (isNaN(val) || val < 0 || val > 9) {
-        alert('Please enter valid numbers between 0 and 9 in all boxes.');
-        return null;
+  function getColumnSequences(prefix) {
+    const sequences = [];
+    for (let col=0; col<4; col++) {
+      const colSeq = [];
+      for (let row=0; row<4; row++) {
+        const id = prefix + '-' + (row*4 + col);
+        const val = parseInt(document.getElementById(id).value);
+        if (isNaN(val) || val < 0 || val > 9) {
+          alert('Please enter valid numbers between 0 and 9 in all boxes.');
+          return null;
+        }
+        colSeq.push(val);
       }
-      colSeq.push(val);
+      sequences.push(colSeq);
     }
-    sequences.push(colSeq);
+    return sequences;
   }
-  return sequences;
-}
 
-function generatePermutationsFromSequences(sequences) {
-  const results = [];
-  function backtrack(index, current) {
-    if (index === sequences.length) {
-      results.push(current.join(''));
-      return;
+  function generatePermutationsFromSequences(sequences) {
+    const results = [];
+    function backtrack(index, current) {
+      if (index === sequences.length) {
+        results.push(current.join(''));
+        return;
+      }
+      for (const num of sequences[index]) {
+        backtrack(index + 1, [...current, num]);
+      }
     }
-    for (const num of sequences[index]) {
-      backtrack(index + 1, [...current, num]);
-    }
-  }
-  backtrack(0, []);
-  return results;
-}
-
-function getSortedDigits(p) {
-  return p.split('').sort().join('');
-}
-
-function displayPermutations(pagePerms) {
-  listContainer.innerHTML = '';
-  pagePerms.forEach(p => {
-    const span = document.createElement('div');
-    span.className = 'permutation';
-    span.innerText = p;
-    listContainer.appendChild(span);
-  });
-}
-
-// Function to update pagination buttons state
-function updatePagination() {
-  prevBtn.disabled = currentPage <= 1;
-  nextBtn.disabled = currentPage >= totalPages;
-  document.getElementById('viewTitle').innerText = `Current View (Page ${currentPage} of ${totalPages})`;
-}
-
-// Function to set and display current page permutations
-function setPage(permutations) {
-  totalPages = Math.ceil(permutations.length / PER_PAGE);
-  if (totalPages === 0) totalPages = 1; // avoid division by zero
-  // Clamp currentPage
-  if (currentPage > totalPages) currentPage = totalPages;
-  if (currentPage < 1) currentPage = 1;
-  const startIdx = (currentPage - 1) * PER_PAGE;
-  const endIdx = startIdx + PER_PAGE;
-  const pagePerms = permutations.slice(startIdx, endIdx);
-  displayPermutations(pagePerms);
-  updatePagination();
-}
-
-function generateData() {
-  const seqs1 = getColumnSequences('g1');
-  const seqs2 = getColumnSequences('g2');
-  if (!seqs1 || !seqs2) return;
-
-  const perms1 = generatePermutationsFromSequences(seqs1);
-  const perms2 = generatePermutationsFromSequences(seqs2);
-
-  exactPermutations = perms1;
-  sharedPermutations = [];
-
-  const map1 = new Map();
-  for (const p of perms1) {
-    const key = getSortedDigits(p);
-    if (!map1.has(key)) map1.set(key, []);
-    map1.get(key).push(p);
+    backtrack(0, []);
+    return results;
   }
 
-  const map2 = new Map();
-  for (const p of perms2) {
-    const key = getSortedDigits(p);
-    if (!map2.has(key)) map2.set(key, []);
-    map2.get(key).push(p);
+  function getSortedDigits(p) {
+    return p.split('').sort().join('');
   }
 
-  const sharedKeys = [...map1.keys()].filter(k => map2.has(k));
-  for (const key of sharedKeys) {
-    const list1 = map1.get(key);
-    const list2 = map2.get(key);
-    const merged = Array.from(new Set([...list1, ...list2]));
-    for (const p of merged) {
-      if (!sharedPermutations.includes(p))
-        sharedPermutations.push(p);
+  function displayPermutations(perms) {
+    listContainer.innerHTML = '';
+    for (const p of perms) {
+      const span = document.createElement('div');
+      span.className = 'permutation';
+      span.innerText = p;
+      listContainer.appendChild(span);
     }
   }
 
-  // Reset to page 1
-  currentPage = 1;
-  // Display current view
-  updateDisplay();
-}
-
-function updateDisplay() {
-  if (currentView === 'exact') {
-    if (exactPermutations.length === 0) {
+  // Show all permutations at once, no pagination controls
+  function showAllPermutations() {
+    listContainer.innerHTML = '';
+    const perms = (currentView === 'exact') ? exactPermutations : sharedPermutations;
+    if (perms.length === 0) {
       listContainer.innerHTML = '<em>No permutations to display.</em>';
-      document.getElementById('viewTitle').innerText = 'Exact Permutations (Page 1)';
-      prevBtn.disabled = true;
-      nextBtn.disabled = true;
     } else {
-      setPage(exactPermutations);
+      displayPermutations(perms);
     }
-  } else {
-    if (sharedPermutations.length === 0) {
-      listContainer.innerHTML = '<em>No permutations to display.</em>';
-      document.getElementById('viewTitle').innerText = 'Shared Permutations (Page 1)';
-      prevBtn.disabled = true;
-      nextBtn.disabled = true;
-    } else {
-      setPage(sharedPermutations);
+    document.getElementById('paginationControls')?.style?.setProperty('display', 'none'); // hide if exists
+    // Update title
+    viewTitle.innerText = (currentView === 'exact') ? 'Exact Permutations' : 'Shared Permutations';
+    // Decrease font size of displayed numbers
+    Array.from(document.getElementsByClassName('permutation')).forEach(div => {
+      div.style.fontSize = '0.8em'; // smaller size
+    });
+  }
+
+  function generateData() {
+    const seqs1 = getColumnSequences('g1');
+    const seqs2 = getColumnSequences('g2');
+    if (!seqs1 || !seqs2) return;
+
+    const perms1 = generatePermutationsFromSequences(seqs1);
+    const perms2 = generatePermutationsFromSequences(seqs2);
+
+    exactPermutations = perms1;
+    sharedPermutations = [];
+
+    const map1 = new Map();
+    for (const p of perms1) {
+      const key = getSortedDigits(p);
+      if (!map1.has(key)) map1.set(key, []);
+      map1.get(key).push(p);
     }
-  }
-}
 
-// Button handlers
-document.getElementById('showExact').onclick = () => {
-  currentView = 'exact';
-  currentPage = 1;
-  updateDisplay();
-};
-document.getElementById('showSimilar').onclick = () => {
-  currentView = 'similar';
-  currentPage = 1;
-  updateDisplay();
-};
-document.getElementById('generateBtn').onclick = () => {
-  generateData();
-};
-prevBtn.onclick = () => {
-  if (currentPage > 1) {
-    currentPage--;
-    updateDisplay();
-  }
-};
-nextBtn.onclick = () => {
-  const totalPerms = (currentView === 'exact') ? exactPermutations.length : sharedPermutations.length;
-  if (currentPage < Math.ceil(totalPerms / PER_PAGE)) {
-    currentPage++;
-    updateDisplay();
-  }
-};
-document.getElementById('exportBtn').onclick = () => {
-  const container = document.getElementById('resultsContainer');
+    const map2 = new Map();
+    for (const p of perms2) {
+      const key = getSortedDigits(p);
+      if (!map2.has(key)) map2.set(key, []);
+      map2.get(key).push(p);
+    }
 
-  // Save original styles
-  const originalStyles = {
-    maxHeight: container.style.maxHeight,
-    overflow: container.style.overflow,
-    height: container.style.height,
-    color: container.style.color,
+    const sharedKeys = [...map1.keys()].filter(k => map2.has(k));
+    for (const key of sharedKeys) {
+      const list1 = map1.get(key);
+      const list2 = map2.get(key);
+      const merged = Array.from(new Set([...list1, ...list2]));
+      for (const p of merged) {
+        if (!sharedPermutations.includes(p))
+          sharedPermutations.push(p);
+      }
+    }
+
+    currentView = 'exact';
+    showAllPermutations();
+  }
+
+  // Button handlers
+  document.getElementById('showExact').onclick = () => {
+    currentView = 'exact';
+    showAllPermutations();
+  };
+  document.getElementById('showSimilar').onclick = () => {
+    currentView = 'similar';
+    showAllPermutations();
+  };
+  document.getElementById('generateBtn').onclick = () => {
+    generateData();
   };
 
-  // Expand container to include all content
-  container.style.color = '#000'; // ensure text is black for clear export
-  container.style.maxHeight = 'none';
-  container.style.overflow = 'visible';
+  // Export functions
+  document.getElementById('exportBtn').onclick = () => {
+    exportCurrentView(false);
+  };
+  document.getElementById('exportAllBtn').onclick = () => {
+    exportCurrentView(true);
+  };
 
-  // Set height to scrollHeight to include all content
-  const fullHeight = container.scrollHeight;
-  container.style.height = fullHeight + 'px';
+  function exportCurrentView(exportAll) {
+    const exportArea = document.getElementById('exportArea');
+    if (!exportArea) {
+      alert('Export area not found!');
+      return;
+    }
 
-  // Delay to ensure styles are applied
-  setTimeout(() => {
-    html2canvas(container, { scale: 4 }).then(canvas => {
-      const link = document.createElement('a');
-      link.href = canvas.toDataURL('image/jpeg', 0.9);
-      link.download = (currentView === 'exact') ? 'exact_permutations.jpeg' : 'shared_permutations.jpeg';
-      link.click();
+    // Save original styles
+    const originalStyles = {
+      maxHeight: exportArea.style.maxHeight,
+      overflow: exportArea.style.overflow,
+      height: exportArea.style.height,
+      width: exportArea.style.width,
+      display: exportArea.style.display,
+    };
 
-      // Restore original styles
-      container.style.maxHeight = originalStyles.maxHeight;
-      container.style.overflow = originalStyles.overflow;
-      container.style.height = originalStyles.height;
-      container.style.color = originalStyles.color;
-    });
-  }, 100);
-};
+    // Expand to full size
+    exportArea.style.maxWidth = 'none';
+    exportArea.style.width = '100%'; // Make full width
+    exportArea.style.overflow = 'visible';
 
-// Initialize display
-updateDisplay();
+    setTimeout(() => {
+      html2canvas(exportArea, { scale: 4, scrollY: -window.scrollY }).then(canvas => {
+        const filename = (currentView === 'exact') ? 'exact_permutations' : 'shared_permutations';
+        const suffix = exportAll ? '_all' : '_current';
+        // Save as JPEG
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/jpeg', 0.9);
+        link.download = filename + suffix + '.jpeg';
+        link.click();
+
+        // Restore styles
+        exportArea.style.maxWidth = originalStyles.maxHeight;
+        exportArea.style.overflow = originalStyles.overflow;
+        exportArea.style.height = originalStyles.height;
+        exportArea.style.width = originalStyles.width;
+        exportArea.style.display = originalStyles.display;
+      });
+    }, 300);
+  }
+
+  // Initialize display
+  showAllPermutations();
+});
 </script>
 </body>
 </html>
