@@ -500,37 +500,48 @@
   document.getElementById('exportAllBtn').onclick=()=>{ exportCurrentView(true); };
 
   function exportCurrentView(exportAll) {
-    const exportArea = document.getElementById('exportArea');
+    const exportArea = document.getElementById('resultsContainer'); // Capture only the results area
     const originalStyles = {
       maxWidth: exportArea.style.maxWidth,
       overflow: exportArea.style.overflow,
       height: exportArea.style.height,
       width: exportArea.style.width,
       display: exportArea.style.display,
+      fontSize: exportArea.style.fontSize,
+      backgroundColor: exportArea.style.backgroundColor,
+      color: exportArea.style.color,
     };
+
+    // Adjust styles for export
     exportArea.style.maxWidth='none';
-    exportArea.style.width='100%';
+    exportArea.style.width='auto';
     exportArea.style.overflow='visible';
+    exportArea.style.fontSize='1em'; // ensure font size
+    exportArea.style.backgroundColor='#fff'; // white background
+    exportArea.style.color='#000'; // black text
 
     setTimeout(()=>{
-      html2canvas(exportArea, { scale:4, scrollY:-window.scrollY }).then(canvas => {
-        const filename = (currentView==='exact') ? 'exact_permutations' : 'shared_permutations';
-        const suffix = exportAll ? '_all' : '_current';
+        html2canvas(exportArea, { scale:4, scrollY:-window.scrollY }).then(canvas => {
+            const filename = (currentView==='exact') ? 'exact_permutations' : 'shared_permutations';
+            const suffix = exportAll ? '_all' : '_current';
 
-        // Save as JPEG
-        const link = document.createElement('a');
-        link.href=canvas.toDataURL('image/jpeg',0.9);
-        link.download=filename+suffix+'.jpeg';
-        link.click();
+            // Save as JPEG
+            const link = document.createElement('a');
+            link.href=canvas.toDataURL('image/jpeg',0.9);
+            link.download=filename+suffix+'.jpeg';
+            link.click();
 
-        // Restore styles
-        exportArea.style.maxWidth=originalStyles.maxWidth;
-        exportArea.style.overflow=originalStyles.overflow;
-        exportArea.style.height=originalStyles.height;
-        exportArea.style.width=originalStyles.width;
-        exportArea.style.display=originalStyles.display;
-      });
-    },300);
+            // Restore original styles
+            exportArea.style.maxWidth=originalStyles.maxWidth;
+            exportArea.style.overflow=originalStyles.overflow;
+            exportArea.style.height=originalStyles.height;
+            exportArea.style.width=originalStyles.width;
+            exportArea.style.display=originalStyles.display;
+            exportArea.style.fontSize=originalStyles.fontSize;
+            exportArea.style.backgroundColor=originalStyles.backgroundColor;
+            exportArea.style.color=originalStyles.color;
+        });
+    }, 300);
   }
 
   // Load saved state on page load
