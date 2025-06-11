@@ -107,8 +107,10 @@
   #exportBtn:hover { background-color: #ef6c00; }
   #exportAllBtn { background-color: #c2185b; color: #fff; }
   #exportAllBtn:hover { background-color: #ad1457; }
+  #exportChartsBtn { background-color: #007bff; color: #fff; }
+  #exportChartsBtn:hover { background-color: #0069d9; }
 
-  /* Search/filter area */
+  /* Search/filter area with uniform input sizes */
   #filterArea {
     display: flex;
     flex-wrap: wrap;
@@ -116,20 +118,25 @@
     margin-bottom: 10px;
     align-items: center;
   }
-  #searchInput {
-    padding: 6px 10px;
-    font-size: 1em;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    flex: 1 1 200px;
-  }
-  #sumRange, #partitionSum {
+
+  /* Make search, sum range, partition sum inputs same size */
+  #filterArea input[type=text],
+  #filterArea input[type=number] {
     width: 120px;
+    height: 35px;
     padding: 6px 10px;
     font-size: 1em;
     border: 1px solid #ccc;
     border-radius: 4px;
+    box-sizing: border-box;
   }
+
+  /* Placeholder styling (optional) */
+  #filterArea input[type=text]::placeholder,
+  #filterArea input[type=number]::placeholder {
+    font-style: italic;
+  }
+
   /* Results container */
   #resultsContainer {
     margin-top: 20px;
@@ -189,79 +196,83 @@
 <h1>Rex Compare Chart with Features</h1>
 <p>Enter digits in both grids. Use buttons below to toggle views. Export options available. Use search/filter to refine displayed permutations. Partition Sum difference is between 0 and 99.</p>
 
-<div id="exportArea">
-  <!-- Top section: Charts in horizontal layout -->
-  <div class="top-section">
-    <!-- Chart 1 -->
-    <div class="grid-container">
-      <div class="chart-title">Chart 1</div>
-      <div class="grid" id="g1">
-        <input type="number" min="0" max="9" id="g1-0" />
-        <input type="number" min="0" max="9" id="g1-1" />
-        <input type="number" min="0" max="9" id="g1-2" />
-        <input type="number" min="0" max="9" id="g1-3" />
-        <input type="number" min="0" max="9" id="g1-4" />
-        <input type="number" min="0" max="9" id="g1-5" />
-        <input type="number" min="0" max="9" id="g1-6" />
-        <input type="number" min="0" max="9" id="g1-7" />
-        <input type="number" min="0" max="9" id="g1-8" />
-        <input type="number" min="0" max="9" id="g1-9" />
-        <input type="number" min="0" max="9" id="g1-10" />
-        <input type="number" min="0" max="9" id="g1-11" />
-        <input type="number" min="0" max="9" id="g1-12" />
-        <input type="number" min="0" max="9" id="g1-13" />
-        <input type="number" min="0" max="9" id="g1-14" />
-        <input type="number" min="0" max="9" id="g1-15" />
+<!-- Wrap charts in a container for combined export -->
+<div id="chartsContainer">
+  <div id="exportArea">
+    <!-- Top section: Charts in horizontal layout -->
+    <div class="top-section">
+      <!-- Chart 1 -->
+      <div class="grid-container">
+        <div class="chart-title">Chart 1</div>
+        <div class="grid" id="g1">
+          <input type="number" min="0" max="9" id="g1-0" />
+          <input type="number" min="0" max="9" id="g1-1" />
+          <input type="number" min="0" max="9" id="g1-2" />
+          <input type="number" min="0" max="9" id="g1-3" />
+          <input type="number" min="0" max="9" id="g1-4" />
+          <input type="number" min="0" max="9" id="g1-5" />
+          <input type="number" min="0" max="9" id="g1-6" />
+          <input type="number" min="0" max="9" id="g1-7" />
+          <input type="number" min="0" max="9" id="g1-8" />
+          <input type="number" min="0" max="9" id="g1-9" />
+          <input type="number" min="0" max="9" id="g1-10" />
+          <input type="number" min="0" max="9" id="g1-11" />
+          <input type="number" min="0" max="9" id="g1-12" />
+          <input type="number" min="0" max="9" id="g1-13" />
+          <input type="number" min="0" max="9" id="g1-14" />
+          <input type="number" min="0" max="9" id="g1-15" />
+        </div>
+      </div>
+      <!-- Chart 2 -->
+      <div class="grid-container">
+        <div class="chart-title">Chart 2</div>
+        <div class="grid" id="g2">
+          <input type="number" min="0" max="9" id="g2-0" />
+          <input type="number" min="0" max="9" id="g2-1" />
+          <input type="number" min="0" max="9" id="g2-2" />
+          <input type="number" min="0" max="9" id="g2-3" />
+          <input type="number" min="0" max="9" id="g2-4" />
+          <input type="number" min="0" max="9" id="g2-5" />
+          <input type="number" min="0" max="9" id="g2-6" />
+          <input type="number" min="0" max="9" id="g2-7" />
+          <input type="number" min="0" max="9" id="g2-8" />
+          <input type="number" min="0" max="9" id="g2-9" />
+          <input type="number" min="0" max="9" id="g2-10" />
+          <input type="number" min="0" max="9" id="g2-11" />
+          <input type="number" min="0" max="9" id="g2-12" />
+          <input type="number" min="0" max="9" id="g2-13" />
+          <input type="number" min="0" max="9" id="g2-14" />
+          <input type="number" min="0" max="9" id="g2-15" />
+        </div>
       </div>
     </div>
-    <!-- Chart 2 -->
-    <div class="grid-container">
-      <div class="chart-title">Chart 2</div>
-      <div class="grid" id="g2">
-        <input type="number" min="0" max="9" id="g2-0" />
-        <input type="number" min="0" max="9" id="g2-1" />
-        <input type="number" min="0" max="9" id="g2-2" />
-        <input type="number" min="0" max="9" id="g2-3" />
-        <input type="number" min="0" max="9" id="g2-4" />
-        <input type="number" min="0" max="9" id="g2-5" />
-        <input type="number" min="0" max="9" id="g2-6" />
-        <input type="number" min="0" max="9" id="g2-7" />
-        <input type="number" min="0" max="9" id="g2-8" />
-        <input type="number" min="0" max="9" id="g2-9" />
-        <input type="number" min="0" max="9" id="g2-10" />
-        <input type="number" min="0" max="9" id="g2-11" />
-        <input type="number" min="0" max="9" id="g2-12" />
-        <input type="number" min="0" max="9" id="g2-13" />
-        <input type="number" min="0" max="9" id="g2-14" />
-        <input type="number" min="0" max="9" id="g2-15" />
-      </div>
-    </div>
   </div>
+</div>
 
-  <!-- Buttons -->
-  <div class="buttons">
-    <button id="generateBtn">Generate</button>
-    <button id="showExact">Exact Permutations</button>
-    <button id="showSimilar">Shared Permutations</button>
-    <button id="exportBtn">Export as JPEG/PNG</button>
-    <button id="exportAllBtn">Export All Permutations</button>
-  </div>
+<!-- Buttons -->
+<div class="buttons">
+  <button id="generateBtn">Generate</button>
+  <button id="showExact">Exact Permutations</button>
+  <button id="showSimilar">Shared Permutations</button>
+  <button id="exportBtn">Export as JPEG/PNG</button>
+  <button id="exportAllBtn">Export All Permutations</button>
+  <button id="exportChartsBtn">Export Charts</button>
+</div>
 
-  <!-- Filter/Search Area -->
-  <div id="filterArea">
-    <input type="text" id="searchInput" placeholder="Search number (e.g., 23, 5)" />
-    <input type="number" id="sumRange" min="0" max="36" placeholder="Sum Range" />
-    <input type="number" id="partitionSum" min="0" max="99" placeholder="Partition Sum (0-99)" />
-    <button id="applyFilter">Apply Filter</button>
-    <button id="clearFilter">Clear Filter</button>
-    <button id="copyBtn">Copy List</button>
-  </div>
+<!-- Filter/Search Area -->
+<div id="filterArea">
+  <input type="text" id="searchInput" placeholder="Search number (e.g., 23, 5)" />
+  <input type="number" id="sumRange" min="0" max="36" placeholder="Sum Range" />
+  <input type="number" id="partitionSum" min="0" max="99" placeholder="Partition Sum (0-99)" />
+  <button id="applyFilter">Apply Filter</button>
+  <button id="clearFilter">Clear Filter</button>
+  <button id="copyBtn">Copy List</button>
+</div>
 
-  <!-- Results display -->
-  <div id="resultsContainer">
-    <h2 id="viewTitle">All Permutations</h2>
-    <div id="permutationList"></div>
-  </div>
+<!-- Results display -->
+<div id="resultsContainer">
+  <h2 id="viewTitle">All Permutations</h2>
+  <div id="permutationList"></div>
 </div>
 </div>
 
@@ -468,87 +479,131 @@
   }
 
   // Event handlers
-  document.getElementById('showExact').onclick=()=>{ currentView='exact'; showPermutations(); };
-  document.getElementById('showSimilar').onclick=()=>{ currentView='similar'; showPermutations(); };
+document.getElementById('showExact').onclick=()=>{ currentView='exact'; showPermutations(); };
+document.getElementById('showSimilar').onclick=()=>{ currentView='similar'; showPermutations(); };
 
-  document.getElementById('generateBtn').onclick=()=>{ generateData(); };
+document.getElementById('generateBtn').onclick=()=>{ generateData(); };
 
-  document.getElementById('applyFilter').onclick=()=>{
-    showPermutations();
+document.getElementById('applyFilter').onclick=()=>{
+  showPermutations();
+};
+
+document.getElementById('clearFilter').onclick=()=>{
+  document.getElementById('searchInput').value='';
+  document.getElementById('sumRange').value='';
+  document.getElementById('partitionSum').value='';
+  showPermutations();
+};
+
+// Copy list
+document.getElementById('copyBtn').onclick=()=>{
+  if (filteredPermutations.length===0) {
+    alert('No permutations to copy.');
+    return;
+  }
+  const text = filteredPermutations.join('\n');
+  navigator.clipboard.writeText(text).then(()=> {
+    alert('Copied to clipboard!');
+  });
+};
+
+// Export functions
+document.getElementById('exportBtn').onclick=()=>{ exportCurrentView(false); };
+document.getElementById('exportAllBtn').onclick=()=>{ exportCurrentView(true); };
+
+/** New: Export Charts Button **/
+document.getElementById('exportChartsBtn').onclick=()=>{ exportCharts(); };
+
+/** Export current view (permutations list) **/
+function exportCurrentView(exportAll) {
+  const exportArea = document.getElementById('resultsContainer');
+  const originalStyles = {
+    maxWidth: exportArea.style.maxWidth,
+    overflow: exportArea.style.overflow,
+    height: exportArea.style.height,
+    width: exportArea.style.width,
+    display: exportArea.style.display,
+    fontSize: exportArea.style.fontSize,
+    backgroundColor: exportArea.style.backgroundColor,
+    color: exportArea.style.color,
   };
 
-  document.getElementById('clearFilter').onclick=()=>{
-    document.getElementById('searchInput').value='';
-    document.getElementById('sumRange').value='';
-    document.getElementById('partitionSum').value='';
-    showPermutations();
+  exportArea.style.maxWidth='none';
+  exportArea.style.width='auto';
+  exportArea.style.overflow='visible';
+  exportArea.style.fontSize='1em';
+  exportArea.style.backgroundColor='#fff';
+  exportArea.style.color='#000';
+
+  setTimeout(()=>{
+      html2canvas(exportArea, { scale:4, scrollY:-window.scrollY }).then(canvas => {
+          const filename = (currentView==='exact') ? 'exact_permutations' : 'shared_permutations';
+          const suffix = exportAll ? '_all' : '_current';
+
+          const link = document.createElement('a');
+          link.href=canvas.toDataURL('image/jpeg',0.9);
+          link.download=filename+suffix+'.jpeg';
+          link.click();
+
+          // restore styles
+          exportArea.style.maxWidth=originalStyles.maxWidth;
+          exportArea.style.overflow=originalStyles.overflow;
+          exportArea.style.height=originalStyles.height;
+          exportArea.style.width=originalStyles.width;
+          exportArea.style.display=originalStyles.display;
+          exportArea.style.fontSize=originalStyles.fontSize;
+          exportArea.style.backgroundColor=originalStyles.backgroundColor;
+          exportArea.style.color=originalStyles.color;
+      });
+  }, 300);
+}
+
+/** Function to export both charts together **/
+function exportCharts() {
+  const container = document.getElementById('chartsContainer');
+
+  const originalStyles = {
+    maxWidth: container.style.maxWidth,
+    overflow: container.style.overflow,
+    height: container.style.height,
+    width: container.style.width,
+    display: container.style.display,
+    fontSize: container.style.fontSize,
+    backgroundColor: container.style.backgroundColor,
+    color: container.style.color,
   };
 
-  document.getElementById('copyBtn').onclick=()=>{
-    if (filteredPermutations.length===0) {
-      alert('No permutations to copy.');
-      return;
-    }
-    const text = filteredPermutations.join('\n');
-    navigator.clipboard.writeText(text).then(()=> {
-      alert('Copied to clipboard!');
+  // Style adjustments
+  container.style.maxWidth='none';
+  container.style.width='auto';
+  container.style.overflow='visible';
+  container.style.fontSize='1em';
+
+  setTimeout(()=>{
+    html2canvas(container, { scale:4, scrollY:-window.scrollY }).then(canvas => {
+      const link = document.createElement('a');
+      link.href=canvas.toDataURL('image/jpeg',0.9);
+      link.download='charts_combined.jpeg';
+      link.click();
+
+      // Restore styles
+      container.style.maxWidth=originalStyles.maxWidth;
+      container.style.overflow=originalStyles.overflow;
+      container.style.height=originalStyles.height;
+      container.style.width=originalStyles.width;
+      container.style.display=originalStyles.display;
+      container.style.fontSize=originalStyles.fontSize;
+      container.style.backgroundColor=originalStyles.backgroundColor;
+      container.style.color=originalStyles.color;
     });
-  };
+  }, 300);
+}
 
-  // Export functions
-  document.getElementById('exportBtn').onclick=()=>{ exportCurrentView(false); };
-  document.getElementById('exportAllBtn').onclick=()=>{ exportCurrentView(true); };
-
-  function exportCurrentView(exportAll) {
-    const exportArea = document.getElementById('resultsContainer'); // Capture only the results area
-    const originalStyles = {
-      maxWidth: exportArea.style.maxWidth,
-      overflow: exportArea.style.overflow,
-      height: exportArea.style.height,
-      width: exportArea.style.width,
-      display: exportArea.style.display,
-      fontSize: exportArea.style.fontSize,
-      backgroundColor: exportArea.style.backgroundColor,
-      color: exportArea.style.color,
-    };
-
-    // Adjust styles for export
-    exportArea.style.maxWidth='none';
-    exportArea.style.width='auto';
-    exportArea.style.overflow='visible';
-    exportArea.style.fontSize='1em'; // ensure font size
-    exportArea.style.backgroundColor='#fff'; // white background
-    exportArea.style.color='#000'; // black text
-
-    setTimeout(()=>{
-        html2canvas(exportArea, { scale:4, scrollY:-window.scrollY }).then(canvas => {
-            const filename = (currentView==='exact') ? 'exact_permutations' : 'shared_permutations';
-            const suffix = exportAll ? '_all' : '_current';
-
-            // Save as JPEG
-            const link = document.createElement('a');
-            link.href=canvas.toDataURL('image/jpeg',0.9);
-            link.download=filename+suffix+'.jpeg';
-            link.click();
-
-            // Restore original styles
-            exportArea.style.maxWidth=originalStyles.maxWidth;
-            exportArea.style.overflow=originalStyles.overflow;
-            exportArea.style.height=originalStyles.height;
-            exportArea.style.width=originalStyles.width;
-            exportArea.style.display=originalStyles.display;
-            exportArea.style.fontSize=originalStyles.fontSize;
-            exportArea.style.backgroundColor=originalStyles.backgroundColor;
-            exportArea.style.color=originalStyles.color;
-        });
-    }, 300);
-  }
-
-  // Load saved state on page load
-  window.onload=()=>{
-    loadState();
-    generateData();
-  }
+/** Generate data on load **/
+window.onload=()=>{
+  loadState();
+  generateData();
+};
 </script>
 </body>
 </html>
