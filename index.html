@@ -13,7 +13,7 @@
     padding: 10px;
   }
   #container {
-    max-width: 1500px; /* Broader container for wider screens */
+    max-width: 1500px;
     margin: auto;
     background: #fff;
     padding: 1em;
@@ -40,7 +40,7 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    flex-wrap: wrap; /* allow wrapping on small screens */
+    flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 15px;
   }
@@ -50,8 +50,8 @@
     border-radius: 10px;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
     margin: 10px;
-    flex: 1 1 250px; /* flexible width for small screens */
-    min-width: 200px; /* prevent too narrow */
+    flex: 1 1 250px;
+    min-width: 200px;
   }
   .chart-title {
     text-align: center;
@@ -69,7 +69,7 @@
   input[type=number] {
     width: 40px;
     height: 40px;
-    font-size: 1em; /* Default size, will increase dynamically later */
+    font-size: 1em;
     text-align: center;
     border: 2px solid #81c784;
     border-radius: 8px;
@@ -79,10 +79,10 @@
   input[type=number]:focus {
     border-color: #388e3c;
   }
-  /* Buttons in one line, smaller size, flexible wrapping on small screens */
+  /* Buttons */
   .buttons {
     display: flex;
-    flex-wrap: wrap; /* allow wrapping on small screens */
+    flex-wrap: wrap;
     justify-content: center;
     gap: 8px;
     margin-bottom: 10px;
@@ -94,10 +94,9 @@
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s;
-    flex: 1 1 150px; /* make buttons flexible and sizable on small screens */
+    flex: 1 1 150px;
     max-width: 200px;
   }
-  /* Button colors */
   #showExact { background-color: #388e3c; color: #fff; }
   #showExact:hover { background-color: #2e7d32; }
   #showSimilar { background-color: #00796b; color: #fff; }
@@ -116,9 +115,7 @@
     border-radius: 12px;
     border: 1px solid #ccc;
     display: inline-block;
-    position: relative;
     max-width: 100%;
-    overflow: visible;
   }
   h2 {
     margin-top: 1em;
@@ -127,53 +124,32 @@
     border-bottom: 2px solid #ccc;
     padding-bottom: 0.3em;
   }
-  /* Expanded width for permutation list, full width on mobile */
+  /* Permutation list styles for mobile */
   #permutationList {
     width: 100%;
-    max-width: 1400px;
-    height: auto;
-    overflow-y: auto;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
     gap: 4px;
     padding: 8px;
-    box-sizing: border-box;
   }
-  /* Smaller font size for permutation display for better mobile fit */
   #permutationList .permutation {
     background-color: #d0e8f2;
     padding: 4px;
     border-radius: 3px;
     font-family: monospace;
-    font-size: 0.8em; /* smaller for smaller screens */
+    font-size: 0.8em;
     text-align: center;
   }
-  /* Hide pagination controls since we're showing all */
+  /* Hide pagination controls if any */
   #paginationControls {
     display: none;
   }
-  /* Wrapper for export content */
-  #exportArea {
-    margin-top: 10px;
-  }
-
-  /* Responsive typography and spacing for small screens */
+  /* Responsive typography */
   @media(max-width: 600px) {
-    h1 {
-      font-size: 1.2em;
-    }
-    .chart-title {
-      font-size: 0.9em;
-    }
-    button {
-      font-size: 0.8em;
-      padding: 6px 10px;
-    }
-    input[type=number] {
-      width: 35px;
-      height: 35px;
-      font-size: 0.9em;
-    }
+    h1 { font-size: 1.2em; }
+    .chart-title { font-size: 0.9em; }
+    button { font-size: 0.8em; padding: 6px 10px; }
+    input[type=number] { width: 35px; height: 35px; font-size: 0.9em; }
   }
 </style>
 </head>
@@ -189,7 +165,7 @@
     <!-- Chart 1 -->
     <div class="grid-container">
       <div class="chart-title">Chart 1</div>
-      <div class="grid" id="grid1">
+      <div class="grid" id="g1">
         <input type="number" min="0" max="9" id="g1-0" />
         <input type="number" min="0" max="9" id="g1-1" />
         <input type="number" min="0" max="9" id="g1-2" />
@@ -247,7 +223,6 @@
     <div id="permutationList"></div>
   </div>
 </div> <!-- end of #exportArea -->
-
 </div> <!-- end of #container -->
 
 <script>
@@ -260,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const listContainer = document.getElementById('permutationList');
   const viewTitle = document.getElementById('viewTitle');
 
-  let currentView = 'exact'; // or 'similar'
+  let currentView = 'exact'; // 'exact' or 'similar'
   let exactPermutations = [];
   let sharedPermutations = [];
 
@@ -321,9 +296,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     document.getElementById('paginationControls')?.style?.setProperty('display', 'none');
     viewTitle.innerText = (currentView === 'exact') ? 'Exact Permutations' : 'Shared Permutations';
-    Array.from(document.getElementsByClassName('permutation')).forEach(div => {
-      div.style.fontSize = '0.8em';
-    });
   }
 
   function generateData() {
@@ -334,9 +306,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const perms1 = generatePermutationsFromSequences(seqs1);
     const perms2 = generatePermutationsFromSequences(seqs2);
 
+    // Store all permutations from Chart 1
     exactPermutations = perms1;
-    sharedPermutations = [];
 
+    // Convert perms2 to a Set for fast lookup
+    const perms2Set = new Set(perms2);
+
+    // Find exact permutations present in both charts
+    sharedPermutations = perms1.filter(p => perms2Set.has(p));
+
+    // For shared permutations based on sorted digits
     const map1 = new Map();
     for (const p of perms1) {
       const key = getSortedDigits(p);
@@ -351,6 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
       map2.get(key).push(p);
     }
 
+    // Find permutations with matching sorted digit keys
     const sharedKeys = [...map1.keys()].filter(k => map2.has(k));
     for (const key of sharedKeys) {
       const list1 = map1.get(key);
@@ -403,15 +383,16 @@ document.addEventListener('DOMContentLoaded', () => {
       display: exportArea.style.display,
     };
 
-    // Expand to full size
+    // Expand to full size for export
     exportArea.style.maxWidth = 'none';
-    exportArea.style.width = '100%'; // Make full width for export
+    exportArea.style.width = '100%';
     exportArea.style.overflow = 'visible';
 
     setTimeout(() => {
       html2canvas(exportArea, { scale: 4, scrollY: -window.scrollY }).then(canvas => {
         const filename = (currentView === 'exact') ? 'exact_permutations' : 'shared_permutations';
         const suffix = exportAll ? '_all' : '_current';
+
         // Save as JPEG
         const link = document.createElement('a');
         link.href = canvas.toDataURL('image/jpeg', 0.9);
@@ -420,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Restore styles
         exportArea.style.maxWidth = originalStyles.maxWidth;
-        exportArea.style.overflow = originalStyles.maximize;
+        exportArea.style.overflow = originalStyles.overflow;
         exportArea.style.height = originalStyles.height;
         exportArea.style.width = originalStyles.width;
         exportArea.style.display = originalStyles.display;
