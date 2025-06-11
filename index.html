@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Rex Compare Chart</title>
+<title>Rex Compare Chart with Features</title>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <style>
   body {
@@ -79,7 +79,7 @@
   input[type=number]:focus {
     border-color: #388e3c;
   }
-  /* Buttons */
+  /* Buttons container */
   .buttons {
     display: flex;
     flex-wrap: wrap;
@@ -107,6 +107,29 @@
   #exportBtn:hover { background-color: #ef6c00; }
   #exportAllBtn { background-color: #c2185b; color: #fff; }
   #exportAllBtn:hover { background-color: #ad1457; }
+
+  /* Search/filter area */
+  #filterArea {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+  #searchInput {
+    padding: 6px 10px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex: 1 1 200px;
+  }
+  #sumRange, #partitionSum {
+    width: 120px;
+    padding: 6px 10px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
   /* Results container */
   #resultsContainer {
     margin-top: 20px;
@@ -124,39 +147,50 @@
     border-bottom: 2px solid #ccc;
     padding-bottom: 0.3em;
   }
-  /* Permutation list styles for mobile */
+  /* Permutation list styles for horizontal, wrap layout */
   #permutationList {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
-    gap: 4px;
+    display: flex;
+    flex-wrap: wrap; /* wrap for no scrolling */
+    gap: 8px;
     padding: 8px;
   }
-  #permutationList .permutation {
+  .permutation {
     background-color: #d0e8f2;
-    padding: 4px;
+    padding: 4px 8px;
     border-radius: 3px;
     font-family: monospace;
     font-size: 0.8em;
-    text-align: center;
+    cursor: pointer;
+    user-select: none;
   }
-  /* Responsive typography */
+  .permutation.highlight {
+    background-color: #ffe082;
+  }
+  /* Copy button */
+  #copyBtn {
+    background-color: #555;
+    color: #fff;
+  }
+  #copyBtn:hover {
+    background-color: #333;
+  }
+
+  /* Responsive adjustments */
   @media(max-width: 600px) {
     h1 { font-size: 1.2em; }
     .chart-title { font-size: 0.9em; }
     button { font-size: 0.8em; padding: 6px 10px; }
-    input[type=number] { width: 35px; height: 35px; font-size: 0.9em; }
+    input[type=number], #sumRange, #partitionSum { width: 35px; height: 35px; font-size: 0.9em; }
   }
 </style>
 </head>
 <body>
 <div id="container">
-<h1>Rex Compare Chart</h1>
-<p>Enter digits in both grids. Use buttons below to toggle views. Export the current view as JPEG/PNG. All numbers will be visible in export.</p>
+<h1>Rex Compare Chart with Features</h1>
+<p>Enter digits in both grids. Use buttons below to toggle views. Export options available. Use search/filter to refine displayed permutations. Partition Sum difference is between 0 and 99.</p>
 
-<!-- Wrapper for exportable content -->
 <div id="exportArea">
-  <!-- Charts in horizontal layout -->
+  <!-- Top section: Charts in horizontal layout -->
   <div class="top-section">
     <!-- Chart 1 -->
     <div class="grid-container">
@@ -213,28 +247,26 @@
     <button id="exportAllBtn">Export All Permutations</button>
   </div>
 
+  <!-- Filter/Search Area -->
+  <div id="filterArea">
+    <input type="text" id="searchInput" placeholder="Search number (e.g., 23, 5)" />
+    <input type="number" id="sumRange" min="0" max="36" placeholder="Sum Range" />
+    <input type="number" id="partitionSum" min="0" max="99" placeholder="Partition Sum (0-99)" />
+    <button id="applyFilter">Apply Filter</button>
+    <button id="clearFilter">Clear Filter</button>
+    <button id="copyBtn">Copy List</button>
+  </div>
+
   <!-- Results display -->
   <div id="resultsContainer">
     <h2 id="viewTitle">All Permutations</h2>
     <div id="permutationList"></div>
   </div>
-</div> <!-- end of #exportArea -->
-</div> <!-- end of #container -->
+</div>
+</div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const btnShowExact = document.getElementById('showExact');
-  const btnShowSimilar = document.getElementById('showSimilar');
-  const btnGenerate = document.getElementById('generateBtn');
-  const btnExport = document.getElementById('exportBtn');
-  const btnExportAll = document.getElementById('exportAllBtn');
-  const listContainer = document.getElementById('permutationList');
-  const viewTitle = document.getElementById('viewTitle');
-
-  let currentView = 'exact'; // 'exact' or 'similar'
-  let exactPermutations = [];
-  let sharedPermutations = [];
-
+  // Helper functions
   function getColumnSequences(prefix) {
     const sequences = [];
     for (let col=0; col<4; col++) {
@@ -272,28 +304,122 @@ document.addEventListener('DOMContentLoaded', () => {
     return p.split('').sort().join('');
   }
 
-  function displayPermutations(perms) {
-    listContainer.innerHTML = '';
-    for (const p of perms) {
+  // State variables
+  let currentView = 'exact'; // 'exact' or 'similar'
+  let exactPermutations = [];
+  let sharedPermutations = [];
+  let filteredPermutations = [];
+
+  const permutationListDiv = document.getElementById('permutationList');
+  const viewTitle = document.getElementById('viewTitle');
+
+  // Load state from localStorage if available
+  function loadState() {
+    const state = localStorage.getItem('rexState');
+    if (state) {
+      try {
+        const obj = JSON.parse(state);
+        // Load inputs
+        for (const key in obj.inputs) {
+          const val = obj.inputs[key];
+          if (document.getElementById(key)) {
+            document.getElementById(key).value = val;
+          }
+        }
+        // Load view
+        currentView = obj.view || 'exact';
+        // Load permutations
+        exactPermutations = obj.exactPermutations || [];
+        sharedPermutations = obj.sharedPermutations || [];
+        // Load filters
+        document.getElementById('searchInput').value = obj.filterText || '';
+        document.getElementById('sumRange').value = obj.filterSum || '';
+        document.getElementById('partitionSum').value = obj.filterPartitionSum || '';
+        // Show current view
+        showPermutations();
+      } catch(e) { console.log('Failed to load state:', e); }
+    }
+  }
+
+  // Save state to localStorage
+  function saveState() {
+    const inputs = {};
+    document.querySelectorAll('#g1 input, #g2 input').forEach(el => {
+      inputs[el.id] = el.value;
+    });
+    const state = {
+      inputs,
+      view: currentView,
+      exactPermutations,
+      sharedPermutations,
+      filterText: document.getElementById('searchInput').value,
+      filterSum: document.getElementById('sumRange').value,
+      filterPartitionSum: document.getElementById('partitionSum').value
+    };
+    localStorage.setItem('rexState', JSON.stringify(state));
+  }
+
+  // Filter by partition sum difference (absolute value)
+  function filterByPartitionSum(permutations, targetDiff) {
+    if (isNaN(targetDiff)) return permutations; // no filter
+    return permutations.filter(p => {
+      const d = p.split('').map(n => parseInt(n));
+      const firstPart = d[0]*10 + d[1];
+      const lastPart = d[2]*10 + d[3];
+      const diff = Math.abs(firstPart - lastPart);
+      return diff === targetDiff;
+    });
+  }
+
+  // Show permutations based on filters
+  function showPermutations() {
+    let sourcePerms = [];
+    if (currentView==='exact') sourcePerms = exactPermutations;
+    else sourcePerms = sharedPermutations;
+
+    // Apply existing filters
+    const filterText = document.getElementById('searchInput').value.trim();
+    const filterSumVal = document.getElementById('sumRange').value.trim();
+    let filtered = sourcePerms.filter(p => {
+      if (filterText && !p.includes(filterText)) return false;
+      if (filterSumVal !== '') {
+        const sum = p.split('').reduce((a,v) => a+parseInt(v),0);
+        if (sum !== parseInt(filterSumVal)) return false;
+      }
+      return true;
+    });
+
+    // Apply partition sum difference filter
+    const partitionDiffVal = parseInt(document.getElementById('partitionSum').value);
+    if (!isNaN(partitionDiffVal)) {
+      filtered = filterByPartitionSum(filtered, partitionDiffVal);
+    }
+
+    filteredPermutations = filtered;
+    listPermutations();
+    saveState();
+  }
+
+  // Display permutations
+  function listPermutations() {
+    permutationListDiv.innerHTML = '';
+    if (filteredPermutations.length===0) {
+      permutationListDiv.innerHTML = '<em>No permutations match the filter.</em>';
+      return;
+    }
+    for (const p of filteredPermutations) {
       const span = document.createElement('div');
-      span.className = 'permutation';
-      span.innerText = p;
-      listContainer.appendChild(span);
+      span.className='permutation';
+      span.innerText=p;
+      span.onclick=()=> {
+        span.classList.toggle('highlight');
+      }
+      permutationListDiv.appendChild(span);
     }
+    viewTitle.innerText = (currentView==='exact') ? 'Exact Permutations' : 'Shared Permutations';
   }
 
-  function showAllPermutations() {
-    listContainer.innerHTML = '';
-    const perms = (currentView === 'exact') ? exactPermutations : sharedPermutations;
-    if (perms.length === 0) {
-      listContainer.innerHTML = '<em>No permutations to display.</em>';
-    } else {
-      displayPermutations(perms);
-    }
-    document.getElementById('paginationControls')?.style?.setProperty('display', 'none');
-    viewTitle.innerText = (currentView === 'exact') ? 'Exact Permutations' : 'Shared Permutations';
-  }
-
+  // Generate data
   function generateData() {
     const seqs1 = getColumnSequences('g1');
     const seqs2 = getColumnSequences('g2');
@@ -305,71 +431,76 @@ document.addEventListener('DOMContentLoaded', () => {
     // Store all permutations from Chart 1
     exactPermutations = perms1;
 
-    // Convert perms2 to a Set for fast lookup
+    // Convert perms2 to Set for exact match
     const perms2Set = new Set(perms2);
-
     // Exact permutations: in both charts with same order
     exactPermutations = perms1.filter(p => perms2Set.has(p));
 
-    // Shared permutations: same multiset of digits, regardless of order
+    // Shared permutations: permutations with same multiset
     const map1 = new Map();
     for (const p of perms1) {
       const key = getSortedDigits(p);
       if (!map1.has(key)) map1.set(key, []);
       map1.get(key).push(p);
     }
-
     const map2 = new Map();
     for (const p of perms2) {
       const key = getSortedDigits(p);
       if (!map2.has(key)) map2.set(key, []);
       map2.get(key).push(p);
     }
-
     const sharedKeys = [...map1.keys()].filter(k => map2.has(k));
     sharedPermutations = [];
     for (const key of sharedKeys) {
-      const list1 = map1.get(key);
-      const list2 = map2.get(key);
-      // Merge unique permutations from both lists
+      const list1= map1.get(key);
+      const list2= map2.get(key);
       const merged = Array.from(new Set([...list1, ...list2]));
       sharedPermutations.push(...merged);
     }
 
-    // Default view
-    currentView = 'exact';
-    showAllPermutations();
+    // Reset filters
+    document.getElementById('searchInput').value='';
+    document.getElementById('sumRange').value='';
+    document.getElementById('partitionSum').value='';
+
+    currentView='exact';
+    showPermutations();
   }
 
-  // Button handlers
-  document.getElementById('showExact').onclick = () => {
-    currentView = 'exact';
-    showAllPermutations();
+  // Event handlers
+  document.getElementById('showExact').onclick=()=>{ currentView='exact'; showPermutations(); };
+  document.getElementById('showSimilar').onclick=()=>{ currentView='similar'; showPermutations(); };
+
+  document.getElementById('generateBtn').onclick=()=>{ generateData(); };
+
+  document.getElementById('applyFilter').onclick=()=>{
+    showPermutations();
   };
-  document.getElementById('showSimilar').onclick = () => {
-    currentView = 'similar';
-    showAllPermutations();
+
+  document.getElementById('clearFilter').onclick=()=>{
+    document.getElementById('searchInput').value='';
+    document.getElementById('sumRange').value='';
+    document.getElementById('partitionSum').value='';
+    showPermutations();
   };
-  document.getElementById('generateBtn').onclick = () => {
-    generateData();
+
+  document.getElementById('copyBtn').onclick=()=>{
+    if (filteredPermutations.length===0) {
+      alert('No permutations to copy.');
+      return;
+    }
+    const text = filteredPermutations.join('\n');
+    navigator.clipboard.writeText(text).then(()=> {
+      alert('Copied to clipboard!');
+    });
   };
 
   // Export functions
-  document.getElementById('exportBtn').onclick = () => {
-    exportCurrentView(false);
-  };
-  document.getElementById('exportAllBtn').onclick = () => {
-    exportCurrentView(true);
-  };
+  document.getElementById('exportBtn').onclick=()=>{ exportCurrentView(false); };
+  document.getElementById('exportAllBtn').onclick=()=>{ exportCurrentView(true); };
 
   function exportCurrentView(exportAll) {
     const exportArea = document.getElementById('exportArea');
-    if (!exportArea) {
-      alert('Export area not found!');
-      return;
-    }
-
-    // Save original styles
     const originalStyles = {
       maxWidth: exportArea.style.maxWidth,
       overflow: exportArea.style.overflow,
@@ -377,36 +508,36 @@ document.addEventListener('DOMContentLoaded', () => {
       width: exportArea.style.width,
       display: exportArea.style.display,
     };
+    exportArea.style.maxWidth='none';
+    exportArea.style.width='100%';
+    exportArea.style.overflow='visible';
 
-    // Expand to full size for export
-    exportArea.style.maxWidth = 'none';
-    exportArea.style.width = '100%';
-    exportArea.style.overflow = 'visible';
-
-    setTimeout(() => {
-      html2canvas(exportArea, { scale: 4, scrollY: -window.scrollY }).then(canvas => {
-        const filename = (currentView === 'exact') ? 'exact_permutations' : 'shared_permutations';
+    setTimeout(()=>{
+      html2canvas(exportArea, { scale:4, scrollY:-window.scrollY }).then(canvas => {
+        const filename = (currentView==='exact') ? 'exact_permutations' : 'shared_permutations';
         const suffix = exportAll ? '_all' : '_current';
 
         // Save as JPEG
         const link = document.createElement('a');
-        link.href = canvas.toDataURL('image/jpeg', 0.9);
-        link.download = filename + suffix + '.jpeg';
+        link.href=canvas.toDataURL('image/jpeg',0.9);
+        link.download=filename+suffix+'.jpeg';
         link.click();
 
         // Restore styles
-        exportArea.style.maxWidth = originalStyles.maxWidth;
-        exportArea.style.overflow = originalStyles.overflow;
-        exportArea.style.height = originalStyles.height;
-        exportArea.style.width = originalStyles.width;
-        exportArea.style.display = originalStyles.display;
+        exportArea.style.maxWidth=originalStyles.maxWidth;
+        exportArea.style.overflow=originalStyles.overflow;
+        exportArea.style.height=originalStyles.height;
+        exportArea.style.width=originalStyles.width;
+        exportArea.style.display=originalStyles.display;
       });
-    }, 300);
+    },300);
   }
 
-  // Initialize display
-  showAllPermutations();
-});
+  // Load saved state on page load
+  window.onload=()=>{
+    loadState();
+    generateData();
+  }
 </script>
 </body>
 </html>
