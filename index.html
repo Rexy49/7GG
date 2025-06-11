@@ -35,13 +35,13 @@
     margin-bottom: 1em;
     color: #555;
   }
-  /* Top section with 4x4 grids, closer together */
+  /* Top section with 4x4 grids, closer together & horizontal layout */
   .top-section {
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 10px;
+    flex-wrap: nowrap; /* side by side */
+    gap: 15px;
     margin-bottom: 15px;
   }
   .grid-container {
@@ -51,7 +51,7 @@
     box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
     margin: 10px;
     flex: 1 1 250px;
-    min-width: 200px;
+    min-width: 250px;
   }
   .chart-title {
     text-align: center;
@@ -140,10 +140,6 @@
     font-size: 0.8em;
     text-align: center;
   }
-  /* Hide pagination controls if any */
-  #paginationControls {
-    display: none;
-  }
   /* Responsive typography */
   @media(max-width: 600px) {
     h1 { font-size: 1.2em; }
@@ -160,7 +156,7 @@
 
 <!-- Wrapper for exportable content -->
 <div id="exportArea">
-  <!-- Charts -->
+  <!-- Charts in horizontal layout -->
   <div class="top-section">
     <!-- Chart 1 -->
     <div class="grid-container">
@@ -217,7 +213,7 @@
     <button id="exportAllBtn">Export All Permutations</button>
   </div>
 
-  <!-- Permutations display -->
+  <!-- Results display -->
   <div id="resultsContainer">
     <h2 id="viewTitle">All Permutations</h2>
     <div id="permutationList"></div>
@@ -312,10 +308,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Convert perms2 to a Set for fast lookup
     const perms2Set = new Set(perms2);
 
-    // Find exact permutations present in both charts
-    sharedPermutations = perms1.filter(p => perms2Set.has(p));
+    // Exact permutations: in both charts with same order
+    exactPermutations = perms1.filter(p => perms2Set.has(p));
 
-    // For shared permutations based on sorted digits
+    // Shared permutations: same multiset of digits, regardless of order
     const map1 = new Map();
     for (const p of perms1) {
       const key = getSortedDigits(p);
@@ -330,18 +326,17 @@ document.addEventListener('DOMContentLoaded', () => {
       map2.get(key).push(p);
     }
 
-    // Find permutations with matching sorted digit keys
     const sharedKeys = [...map1.keys()].filter(k => map2.has(k));
+    sharedPermutations = [];
     for (const key of sharedKeys) {
       const list1 = map1.get(key);
       const list2 = map2.get(key);
+      // Merge unique permutations from both lists
       const merged = Array.from(new Set([...list1, ...list2]));
-      for (const p of merged) {
-        if (!sharedPermutations.includes(p))
-          sharedPermutations.push(p);
-      }
+      sharedPermutations.push(...merged);
     }
 
+    // Default view
     currentView = 'exact';
     showAllPermutations();
   }
