@@ -13,7 +13,7 @@
     padding: 10px;
   }
   #container {
-    max-width: 1500px; /* Increased max width for broader display */
+    max-width: 1500px; /* Broader container for wider screens */
     margin: auto;
     background: #fff;
     padding: 1em;
@@ -40,7 +40,7 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    flex-wrap: nowrap;
+    flex-wrap: wrap; /* allow wrapping on small screens */
     gap: 10px;
     margin-bottom: 15px;
   }
@@ -50,6 +50,8 @@
     border-radius: 10px;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
     margin: 10px;
+    flex: 1 1 250px; /* flexible width for small screens */
+    min-width: 200px; /* prevent too narrow */
   }
   .chart-title {
     text-align: center;
@@ -77,10 +79,10 @@
   input[type=number]:focus {
     border-color: #388e3c;
   }
-  /* Buttons in one line, smaller size */
+  /* Buttons in one line, smaller size, flexible wrapping on small screens */
   .buttons {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap; /* allow wrapping on small screens */
     justify-content: center;
     gap: 8px;
     margin-bottom: 10px;
@@ -92,7 +94,10 @@
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s;
+    flex: 1 1 150px; /* make buttons flexible and sizable on small screens */
+    max-width: 200px;
   }
+  /* Button colors */
   #showExact { background-color: #388e3c; color: #fff; }
   #showExact:hover { background-color: #2e7d32; }
   #showSimilar { background-color: #00796b; color: #fff; }
@@ -103,7 +108,7 @@
   #exportBtn:hover { background-color: #ef6c00; }
   #exportAllBtn { background-color: #c2185b; color: #fff; }
   #exportAllBtn:hover { background-color: #ad1457; }
-  /* Results styling - larger container, more width */
+  /* Results container */
   #resultsContainer {
     margin-top: 20px;
     padding: 1em;
@@ -122,10 +127,10 @@
     border-bottom: 2px solid #ccc;
     padding-bottom: 0.3em;
   }
-  /* Expanded width for permutation list container */
+  /* Expanded width for permutation list, full width on mobile */
   #permutationList {
-    width: 100%; /* Full width of parent container */
-    max-width: 1400px; /* Limit max width if needed */
+    width: 100%;
+    max-width: 1400px;
     height: auto;
     overflow-y: auto;
     display: grid;
@@ -134,25 +139,41 @@
     padding: 8px;
     box-sizing: border-box;
   }
-  /* Smaller font size for permutation display */
+  /* Smaller font size for permutation display for better mobile fit */
   #permutationList .permutation {
     background-color: #d0e8f2;
     padding: 4px;
     border-radius: 3px;
     font-family: monospace;
-    font-size: 0.8em; /* decreased size for smaller display */
+    font-size: 0.8em; /* smaller for smaller screens */
     text-align: center;
   }
-  /* Pagination controls (hidden for full display) */
+  /* Hide pagination controls since we're showing all */
   #paginationControls {
     display: none;
-    justify-content: center;
-    gap: 10px;
-    margin: 10px 0;
   }
   /* Wrapper for export content */
   #exportArea {
     margin-top: 10px;
+  }
+
+  /* Responsive typography and spacing for small screens */
+  @media(max-width: 600px) {
+    h1 {
+      font-size: 1.2em;
+    }
+    .chart-title {
+      font-size: 0.9em;
+    }
+    button {
+      font-size: 0.8em;
+      padding: 6px 10px;
+    }
+    input[type=number] {
+      width: 35px;
+      height: 35px;
+      font-size: 0.9em;
+    }
   }
 </style>
 </head>
@@ -190,7 +211,7 @@
     <!-- Chart 2 -->
     <div class="grid-container">
       <div class="chart-title">Chart 2</div>
-      <div class="grid" id="grid2">
+      <div class="grid" id="g2">
         <input type="number" min="0" max="9" id="g2-0" />
         <input type="number" min="0" max="9" id="g2-1" />
         <input type="number" min="0" max="9" id="g2-2" />
@@ -290,7 +311,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Show all permutations at once, no pagination controls
   function showAllPermutations() {
     listContainer.innerHTML = '';
     const perms = (currentView === 'exact') ? exactPermutations : sharedPermutations;
@@ -299,12 +319,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       displayPermutations(perms);
     }
-    document.getElementById('paginationControls')?.style?.setProperty('display', 'none'); // hide if exists
-    // Update title
+    document.getElementById('paginationControls')?.style?.setProperty('display', 'none');
     viewTitle.innerText = (currentView === 'exact') ? 'Exact Permutations' : 'Shared Permutations';
-    // Decrease font size of displayed numbers
     Array.from(document.getElementsByClassName('permutation')).forEach(div => {
-      div.style.fontSize = '0.8em'; // smaller size
+      div.style.fontSize = '0.8em';
     });
   }
 
@@ -378,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Save original styles
     const originalStyles = {
-      maxHeight: exportArea.style.maxHeight,
+      maxWidth: exportArea.style.maxWidth,
       overflow: exportArea.style.overflow,
       height: exportArea.style.height,
       width: exportArea.style.width,
@@ -387,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Expand to full size
     exportArea.style.maxWidth = 'none';
-    exportArea.style.width = '100%'; // Make full width
+    exportArea.style.width = '100%'; // Make full width for export
     exportArea.style.overflow = 'visible';
 
     setTimeout(() => {
@@ -401,8 +419,8 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
 
         // Restore styles
-        exportArea.style.maxWidth = originalStyles.maxHeight;
-        exportArea.style.overflow = originalStyles.overflow;
+        exportArea.style.maxWidth = originalStyles.maxWidth;
+        exportArea.style.overflow = originalStyles.maximize;
         exportArea.style.height = originalStyles.height;
         exportArea.style.width = originalStyles.width;
         exportArea.style.display = originalStyles.display;
