@@ -41,7 +41,7 @@
     justify-content: center;
     align-items: flex-start;
     flex-wrap: nowrap; /* side by side */
-    gap: 15px;
+    gap: 10px; /* Reduced gap for closer charts */
     margin-bottom: 15px;
   }
   .grid-container {
@@ -186,6 +186,12 @@
     .chart-title { font-size: 0.9em; }
     button { font-size: 0.8em; padding: 6px 10px; }
     input[type=number], #sumRange, #partitionSum { width: 35px; height: 35px; font-size: 0.9em; }
+    /* Make charts closer vertically on mobile */
+    .top-section {
+      flex-direction: column; /* stack vertically */
+      align-items: center;
+      gap: 5px; /* reduce gap between stacked charts */
+    }
   }
   /* Error message style */
   #errorMsg {
@@ -337,7 +343,6 @@
   function showError(msg) {
     document.getElementById('errorMsg').innerText = msg;
   }
-
   function clearError() {
     document.getElementById('errorMsg').innerText = '';
   }
@@ -387,9 +392,8 @@
     localStorage.setItem('rexState', JSON.stringify(state));
   }
 
-  // Filter by partition sum difference (absolute value)
   function filterByPartitionSum(permutations, targetDiff) {
-    if (isNaN(targetDiff)) return permutations; // no filter
+    if (isNaN(targetDiff)) return permutations;
     return permutations.filter(p => {
       const d = p.split('').map(n => parseInt(n));
       const firstPart = d[0]*10 + d[1];
@@ -399,13 +403,11 @@
     });
   }
 
-  // Show permutations based on filters
   function showPermutations() {
     let sourcePerms = [];
     if (currentView==='exact') sourcePerms = exactPermutations;
     else sourcePerms = sharedPermutations;
 
-    // Apply existing filters
     const filterText = document.getElementById('searchInput').value.trim();
     const filterSumVal = document.getElementById('sumRange').value.trim();
     let filtered = sourcePerms.filter(p => {
@@ -417,7 +419,6 @@
       return true;
     });
 
-    // Apply partition sum difference filter
     const partitionDiffVal = parseInt(document.getElementById('partitionSum').value);
     if (!isNaN(partitionDiffVal)) {
       filtered = filterByPartitionSum(filtered, partitionDiffVal);
@@ -428,7 +429,6 @@
     saveState();
   }
 
-  // Display permutations
   function listPermutations() {
     permutationListDiv.innerHTML = '';
     if (filteredPermutations.length===0) {
@@ -447,7 +447,6 @@
     viewTitle.innerText = (currentView==='exact') ? 'Exact Permutations' : 'Shared Permutations';
   }
 
-  // Generate data
   function generateData() {
     const seqs1 = getColumnSequences('g1');
     const seqs2 = getColumnSequences('g2');
@@ -456,15 +455,10 @@
     const perms1 = generatePermutationsFromSequences(seqs1);
     const perms2 = generatePermutationsFromSequences(seqs2);
 
-    // Store all permutations from Chart 1
     exactPermutations = perms1;
-
-    // Convert perms2 to Set for exact match
     const perms2Set = new Set(perms2);
-    // Exact permutations: in both charts with same order
     exactPermutations = perms1.filter(p => perms2Set.has(p));
 
-    // Shared permutations: permutations with same multiset
     const map1 = new Map();
     for (const p of perms1) {
       const key = getSortedDigits(p);
@@ -477,6 +471,7 @@
       if (!map2.has(key)) map2.set(key, []);
       map2.get(key).push(p);
     }
+
     const sharedKeys = [...map1.keys()].filter(k => map2.has(k));
     sharedPermutations = [];
     for (const key of sharedKeys) {
@@ -486,7 +481,6 @@
       sharedPermutations.push(...merged);
     }
 
-    // Reset filters
     document.getElementById('searchInput').value='';
     document.getElementById('sumRange').value='';
     document.getElementById('partitionSum').value='';
@@ -498,21 +492,14 @@
   // Event handlers
 document.getElementById('showExact').onclick=()=>{ currentView='exact'; showPermutations(); };
 document.getElementById('showSimilar').onclick=()=>{ currentView='similar'; showPermutations(); };
-
 document.getElementById('generateBtn').onclick=()=>{ generateData(); };
-
-document.getElementById('applyFilter').onclick=()=>{
-  showPermutations();
-};
-
+document.getElementById('applyFilter').onclick=()=>{ showPermutations(); };
 document.getElementById('clearFilter').onclick=()=>{
   document.getElementById('searchInput').value='';
   document.getElementById('sumRange').value='';
   document.getElementById('partitionSum').value='';
   showPermutations();
 };
-
-// Copy list
 document.getElementById('copyBtn').onclick=()=>{
   if (filteredPermutations.length===0) {
     alert('No permutations to copy.');
@@ -523,15 +510,11 @@ document.getElementById('copyBtn').onclick=()=>{
     alert('Copied to clipboard!');
   });
 };
-
-// Export functions
 document.getElementById('exportBtn').onclick=()=>{ exportCurrentView(false); };
 document.getElementById('exportAllBtn').onclick=()=>{ exportCurrentView(true); };
-
-/** New: Export Charts Button **/
 document.getElementById('exportChartsBtn').onclick=()=>{ exportCharts(); };
 
-/** Export current view (permutations list) **/
+// Export functions
 function exportCurrentView(exportAll) {
   const exportArea = document.getElementById('resultsContainer');
   const originalStyles = {
@@ -574,11 +557,8 @@ function exportCurrentView(exportAll) {
       });
   }, 300);
 }
-
-/** Function to export both charts together **/
 function exportCharts() {
   const container = document.getElementById('chartsContainer');
-
   const originalStyles = {
     maxWidth: container.style.maxWidth,
     overflow: container.style.overflow,
@@ -589,8 +569,6 @@ function exportCharts() {
     backgroundColor: container.style.backgroundColor,
     color: container.style.color,
   };
-
-  // Style adjustments
   container.style.maxWidth='none';
   container.style.width='auto';
   container.style.overflow='visible';
@@ -616,7 +594,7 @@ function exportCharts() {
   }, 300);
 }
 
-/** Generate data on load **/
+// Generate data
 window.onload=()=>{
   loadState();
   generateData();
