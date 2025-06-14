@@ -110,16 +110,14 @@
   #exportChartsBtn { background-color: #007bff; color: #fff; }
   #exportChartsBtn:hover { background-color: #0069d9; }
 
-  /* Filter/Search Area with uniform input sizes */
+  /* Search/filter area with uniform input sizes */
   #filterArea {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 10px;
     align-items: center;
-    justify-content: center;
   }
-
   /* Make search, sum range, partition sum inputs same size */
   #filterArea input[type=text],
   #filterArea input[type=number] {
@@ -131,7 +129,6 @@
     border-radius: 4px;
     box-sizing: border-box;
   }
-
   /* Placeholder styling (optional) */
   #filterArea input[type=text]::placeholder,
   #filterArea input[type=number]::placeholder {
@@ -183,34 +180,19 @@
     background-color: #333;
   }
 
-  /* Responsive adjustments for small screens */
+  /* Responsive adjustments */
   @media(max-width: 600px) {
     h1 { font-size: 1.2em; }
     .chart-title { font-size: 0.9em; }
     button { font-size: 0.8em; padding: 6px 10px; }
-    input[type=number], #sumRange, #partitionSum { width: 80px; height: 30px; font-size: 0.9em; }
-    #filterArea {
-      flex-direction: column;
-      align-items: stretch;
-    }
-    #filterArea input[type=text],
-    #filterArea input[type=number] {
-      width: 100%;
-      max-width: 150px;
-    }
-    .top-section {
-      flex-direction: column;
-      align-items: center;
-    }
-    .grid-container {
-      min-width: auto;
-    }
-    .buttons {
-      flex-direction: column;
-    }
-    button {
-      max-width: 100%;
-    }
+    input[type=number], #sumRange, #partitionSum { width: 35px; height: 35px; font-size: 0.9em; }
+  }
+  /* Error message style */
+  #errorMsg {
+    color: red;
+    font-size: 0.9em;
+    margin-top: 10px;
+    text-align: center;
   }
 </style>
 </head>
@@ -218,6 +200,9 @@
 <div id="container">
 <h1>Rex Compare Chart with Features</h1>
 <p>Enter digits in both grids. Use buttons below to toggle views. Export options available. Use search/filter to refine displayed permutations. Partition Sum difference is between 0 and 99.</p>
+
+<!-- Error message display -->
+<div id="errorMsg"></div>
 
 <!-- Wrap charts in a container for combined export -->
 <div id="chartsContainer">
@@ -309,13 +294,14 @@
         const id = prefix + '-' + (row*4 + col);
         const val = parseInt(document.getElementById(id).value);
         if (isNaN(val) || val < 0 || val > 9) {
-          alert('Please enter valid numbers between 0 and 9 in all boxes.');
+          showError('Please enter valid numbers between 0 and 9 in all boxes.');
           return null;
         }
         colSeq.push(val);
       }
       sequences.push(colSeq);
     }
+    clearError();
     return sequences;
   }
 
@@ -347,6 +333,15 @@
   const permutationListDiv = document.getElementById('permutationList');
   const viewTitle = document.getElementById('viewTitle');
 
+  // Show error message
+  function showError(msg) {
+    document.getElementById('errorMsg').innerText = msg;
+  }
+
+  function clearError() {
+    document.getElementById('errorMsg').innerText = '';
+  }
+
   // Load state from localStorage if available
   function loadState() {
     const state = localStorage.getItem('rexState');
@@ -369,7 +364,6 @@
         document.getElementById('searchInput').value = obj.filterText || '';
         document.getElementById('sumRange').value = obj.filterSum || '';
         document.getElementById('partitionSum').value = obj.filterPartitionSum || '';
-        // Show current view
         showPermutations();
       } catch(e) { console.log('Failed to load state:', e); }
     }
@@ -393,6 +387,7 @@
     localStorage.setItem('rexState', JSON.stringify(state));
   }
 
+  // Filter by partition sum difference (absolute value)
   function filterByPartitionSum(permutations, targetDiff) {
     if (isNaN(targetDiff)) return permutations; // no filter
     return permutations.filter(p => {
@@ -404,12 +399,13 @@
     });
   }
 
+  // Show permutations based on filters
   function showPermutations() {
     let sourcePerms = [];
     if (currentView==='exact') sourcePerms = exactPermutations;
     else sourcePerms = sharedPermutations;
 
-    // Apply filters
+    // Apply existing filters
     const filterText = document.getElementById('searchInput').value.trim();
     const filterSumVal = document.getElementById('sumRange').value.trim();
     let filtered = sourcePerms.filter(p => {
@@ -432,6 +428,7 @@
     saveState();
   }
 
+  // Display permutations
   function listPermutations() {
     permutationListDiv.innerHTML = '';
     if (filteredPermutations.length===0) {
@@ -450,6 +447,7 @@
     viewTitle.innerText = (currentView==='exact') ? 'Exact Permutations' : 'Shared Permutations';
   }
 
+  // Generate data
   function generateData() {
     const seqs1 = getColumnSequences('g1');
     const seqs2 = getColumnSequences('g2');
@@ -514,6 +512,7 @@ document.getElementById('clearFilter').onclick=()=>{
   showPermutations();
 };
 
+// Copy list
 document.getElementById('copyBtn').onclick=()=>{
   if (filteredPermutations.length===0) {
     alert('No permutations to copy.');
@@ -525,10 +524,14 @@ document.getElementById('copyBtn').onclick=()=>{
   });
 };
 
+// Export functions
 document.getElementById('exportBtn').onclick=()=>{ exportCurrentView(false); };
 document.getElementById('exportAllBtn').onclick=()=>{ exportCurrentView(true); };
+
+/** New: Export Charts Button **/
 document.getElementById('exportChartsBtn').onclick=()=>{ exportCharts(); };
 
+/** Export current view (permutations list) **/
 function exportCurrentView(exportAll) {
   const exportArea = document.getElementById('resultsContainer');
   const originalStyles = {
@@ -572,6 +575,7 @@ function exportCurrentView(exportAll) {
   }, 300);
 }
 
+/** Function to export both charts together **/
 function exportCharts() {
   const container = document.getElementById('chartsContainer');
 
@@ -612,7 +616,7 @@ function exportCharts() {
   }, 300);
 }
 
-// Generate data on load
+/** Generate data on load **/
 window.onload=()=>{
   loadState();
   generateData();
