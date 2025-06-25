@@ -409,9 +409,18 @@
     else sourcePerms = sharedPermutations;
 
     const filterText = document.getElementById('searchInput').value.trim();
+    // Convert search input to array of digits
+    const searchDigits = filterText.split('').filter(d => d.match(/\d/));
+    
     const filterSumVal = document.getElementById('sumRange').value.trim();
     let filtered = sourcePerms.filter(p => {
-      if (filterText && !p.includes(filterText)) return false;
+      if (searchDigits.length > 0) {
+        // Check if all searchDigits are in p
+        const pDigits = p.split('');
+        for (const d of searchDigits) {
+          if (!pDigits.includes(d)) return false;
+        }
+      }
       if (filterSumVal !== '') {
         const sum = p.split('').reduce((a,v) => a+parseInt(v),0);
         if (sum !== parseInt(filterSumVal)) return false;
